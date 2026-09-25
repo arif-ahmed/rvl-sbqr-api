@@ -39,7 +39,7 @@ primary_region = "sin"
   cpus = 1
 
 [env]
-  ASPNETCORE_ENVIRONMENT = "Staging"
+  ASPNETCORE_ENVIRONMENT = "Development"
   ASPNETCORE_URLS = "http://+:8080"
   Crypto__VaultProvider = "S3"
   KeyCustody__ActiveProvider = "PemVault"
