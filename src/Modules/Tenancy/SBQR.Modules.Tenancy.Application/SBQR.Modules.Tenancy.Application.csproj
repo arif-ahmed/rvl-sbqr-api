@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.Tenancy.Application — orchestration layer. MediatR
+    commands/queries, FluentValidation validators, projection helpers
+    (TenantResponseBuilder). No EF Core, no ASP.NET Core types. See ../README.md.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.Tenancy.Application</RootNamespace>
+    <AssemblyName>SBQR.Modules.Tenancy.Application</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.Tenancy.Domain\SBQR.Modules.Tenancy.Domain.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.Tenancy.Contracts\SBQR.Modules.Tenancy.Contracts.csproj" />
+    <ProjectReference Include="..\..\IdentityAccess\SBQR.Modules.IdentityAccess.Contracts\SBQR.Modules.IdentityAccess.Contracts.csproj" />
+    <!--
+      KeyCustody.Contracts only (never KeyCustody.Domain/Infrastructure) —
+      used by Suspend/Reactivate/TerminateTenantCommandHandler to cascade
+      onto the tenant's signing key via
+      {Suspend,Reinstate}TenantSigningKeysCommand; and by
+      Activate/ReactivateTenantCommandHandler to evaluate the activate-gate
+      via GetActiveCryptoKeyQuery.
+    -->
+    <ProjectReference Include="..\..\KeyCustody\SBQR.Modules.KeyCustody.Contracts\SBQR.Modules.KeyCustody.Contracts.csproj" />
+    <!--
+      InstitutionTrust.Contracts only — used by Activate/ReactivateTenant
+      CommandHandler to evaluate the activate-gate's trust-entry
+      precondition via GetInstitutionPublicKeyQuery.
+    -->
+    <ProjectReference Include="..\..\InstitutionTrust\SBQR.Modules.InstitutionTrust.Contracts\SBQR.Modules.InstitutionTrust.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.IdentityAccess.Domain — pure domain layer for the Identity &
+    Access bounded context. Owns the TenantConfiguration aggregate (moved
+    from the Tenancy module when OAuth 2.1 client-credentials moved here;
+    supersedes the legacy ApiCredential aggregate). No EF Core, no ASP.NET
+    Core, no persistence or HTTP awareness. Tenant ids are opaque Guids on
+    this side of the Tenancy boundary — the strongly-typed TenantId VO
+    belongs to Tenancy.Domain and must not leak across. See ../README.md.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.IdentityAccess.Domain</RootNamespace>
+    <AssemblyName>SBQR.Modules.IdentityAccess.Domain</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,109 @@
+# =============================================================================
+# .dockerignore — exclude everything that does not belong in the SBQR.Api image.
+# Same intent as .gitignore but at the Docker build-context layer; the runtime
+# image should never carry source, build artifacts, IDE state, secrets, or
+# local config overrides.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# .NET build output — never copy into the build context (publish re-creates).
+# -----------------------------------------------------------------------------
+**/bin/
+**/obj/
+**/[Bb]in/
+**/[Oo]bj/
+**/[Dd]ebug/
+**/[Rr]elease/
+**/[Nn]upkg/
+*.nupkg
+*.snupkg
+**/packages/
+
+# -----------------------------------------------------------------------------
+# Test scratch + results — not part of the publish output.
+# -----------------------------------------------------------------------------
+**/[Tt]est[Rr]esult*/
+**/[Cc]overage*/
+*.coverage
+*.coveragexml
+coverage.*.xml
+*.trx
+test-results.xml
+trx-output/
+*.scratch.cs
+*.scratch.json
+*.scratch.txt
+
+# -----------------------------------------------------------------------------
+# VCS / IDE metadata — never bake into an image.
+# -----------------------------------------------------------------------------
+.git/
+.gitignore
+.gitattributes
+.github/
+.vs/
+.vscode/
+.idea/
+*.[Rr]e[Ss]harper*
+_ReSharper*/
+*.swp
+*.swo
+*.user
+*.userprefs
+*.suo
+*.userosscache
+
+# -----------------------------------------------------------------------------
+# Local config + secrets — repo root and per-project overrides.
+# (Also covered by .gitignore but the image build must not see them.
+# Single-file convention: appsettings.json is the only settings file.)
+# -----------------------------------------------------------------------------
+.env
+.env.*
+appsettings.*.local.json
+appsettings.*.secrets.json
+**/appsettings.*.local.json
+**/appsettings.*.secrets.json
+**/secrets.json
+*.secrets.json
+secrets.json
+
+# DPAPI / signing key material
+*.dpapi
+*.dpapi.xml
+*.hsm-ref
+*.key-blob
+*.blob
+keystore/
+**/keystore/
+
+# Ephemeral local DB / Docker data — never shipped in image.
+docker-data/
+postgres-data/
+pgdata/
+
+# -----------------------------------------------------------------------------
+# Docs that are out of scope for the runtime image (the image runs the API;
+# it does not need the spec nor the design docs).
+# -----------------------------------------------------------------------------
+docs/
+
+# -----------------------------------------------------------------------------
+# Docker / orchestration artifacts themselves — avoid recursion and image bloat.
+# -----------------------------------------------------------------------------
+docker/
+.dockerignore
+Dockerfile*
+docker-compose*.yml
+
+# -----------------------------------------------------------------------------
+# PowerShell / shell noise — not relevant inside the linux runtime image.
+# -----------------------------------------------------------------------------
+*.ps1.bak
+*.ps1
+
+# -----------------------------------------------------------------------------
+# BuildKit cache mount target — the Dockerfile creates this inside the
+# container; it must not be copied from the host context.
+# -----------------------------------------------------------------------------
+.nuget-packages/

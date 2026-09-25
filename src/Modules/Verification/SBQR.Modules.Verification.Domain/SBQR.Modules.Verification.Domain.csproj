@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.Verification.Domain — pure domain layer for the
+    Verification bounded context. No EF Core, no ASP.NET Core, no
+    persistence or HTTP awareness.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.Verification.Domain</RootNamespace>
+    <AssemblyName>SBQR.Modules.Verification.Domain</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.InstitutionTrust.Api — composition root + HTTP surface.
+    Hosts InstitutionTrustModule (IModule) and the POST /admin/institutions
+    controller.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.InstitutionTrust.Api</RootNamespace>
+    <AssemblyName>SBQR.Modules.InstitutionTrust.Api</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- [ApiVersion] attribute for URL-segment API versioning; the versioning
+         pipeline itself is owned by the host (SBQR.Api Program.cs §7c). -->
+    <PackageReference Include="Asp.Versioning.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.InstitutionTrust.Application\SBQR.Modules.InstitutionTrust.Application.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.InstitutionTrust.Infrastructure\SBQR.Modules.InstitutionTrust.Infrastructure.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.InstitutionTrust.Contracts\SBQR.Modules.InstitutionTrust.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

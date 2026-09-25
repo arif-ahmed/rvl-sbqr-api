@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.InstitutionTrust.Domain — pure domain layer for the
+    InstitutionTrust bounded context. InstitutionRegistry + InstitutionKey
+    entities live here. No EF Core, no ASP.NET Core.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.InstitutionTrust.Domain</RootNamespace>
+    <AssemblyName>SBQR.Modules.InstitutionTrust.Domain</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

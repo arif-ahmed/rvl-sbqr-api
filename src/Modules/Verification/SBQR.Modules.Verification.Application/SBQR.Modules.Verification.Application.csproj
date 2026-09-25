@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.Verification.Application — orchestration layer. MediatR
+    commands, FluentValidation validators. The verification pipeline
+    (parse → CRC → key resolution → Ed25519 verify → record outcome) lives
+    here. Verdict / trust-source enums belong to this layer too because
+    they are part of the application's contract with its callers.
+
+    Within-module references: Application → Infrastructure is allowed for
+    the DbContext-backed handlers. The cross-module rule that forbids
+    Application → OTHER-module's Infrastructure (architecture test
+    Modules_should_not_reference_other_modules_Domain_or_Infrastructure)
+    is unchanged.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.Verification.Application</RootNamespace>
+    <AssemblyName>SBQR.Modules.Verification.Application</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.Verification.Domain\SBQR.Modules.Verification.Domain.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.Verification.Contracts\SBQR.Modules.Verification.Contracts.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.Verification.Infrastructure\SBQR.Modules.Verification.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\InstitutionTrust\SBQR.Modules.InstitutionTrust.Contracts\SBQR.Modules.InstitutionTrust.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+  <!--
+    EF Core is referenced from Application because the transaction-row
+    insert goes through the DbContext directly in the handler (the
+    simplest path that matches the Sep-17 inline-save pattern). The
+    exception is contained: the architecture test forbids Application →
+    OTHER-module's Infrastructure, not Application → own Infrastructure.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+  </ItemGroup>
+
+</Project>

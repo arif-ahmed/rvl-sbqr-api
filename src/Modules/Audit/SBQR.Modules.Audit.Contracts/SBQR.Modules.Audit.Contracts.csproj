@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.Audit.Contracts — the published language of the Audit
+    bounded context. This is the ONLY project other modules may reference
+    (tactical-design.md §4/§5).
+
+    The IAuditLogger contract lives in SBQR.SharedKernel.Application (the
+    pure kernel). Audit.Contracts exposes module-local read models (export
+    queries, filter DTOs) that later epic-9 stories may add.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.Audit.Contracts</RootNamespace>
+    <AssemblyName>SBQR.Modules.Audit.Contracts</AssemblyName>
+  </PropertyGroup>
+
+</Project>

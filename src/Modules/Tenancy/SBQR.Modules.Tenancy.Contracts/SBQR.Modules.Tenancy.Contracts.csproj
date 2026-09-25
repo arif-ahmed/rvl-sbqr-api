@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.Tenancy.Contracts — the published language of the Tenancy
+    bounded context. This is the ONLY project other modules may reference
+    (tactical-design.md §4/§5). Created when the OAuth2 client-credentials
+    surface moved to the IdentityAccess module: the token endpoint needs
+    tenant admission state (Pending/Active/Suspended/Terminated) without
+    referencing Tenancy.Domain or Tenancy.Infrastructure.
+
+    Keep it dependency-free: no MediatR, no EF Core, no ASP.NET Core.
+    The implementation lives in Tenancy.Infrastructure
+    (TenantAdmissionDirectory) and is registered by TenancyModule.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.Tenancy.Contracts</RootNamespace>
+    <AssemblyName>SBQR.Modules.Tenancy.Contracts</AssemblyName>
+  </PropertyGroup>
+
+</Project>

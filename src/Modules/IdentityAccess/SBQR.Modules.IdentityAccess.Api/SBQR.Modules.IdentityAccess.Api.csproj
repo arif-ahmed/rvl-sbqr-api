@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.IdentityAccess.Api — composition root + HTTP surface. Hosts
+    IdentityAccessModule (IModule): the OAuth 2.1 token endpoint
+    (POST /oauth/token), the JwtBearer validation pipeline, and the four named
+    authorization policies consumed by every other module's controllers via
+    PolicyNames. Referenced directly by SBQR.Api; Domain, Application,
+    Infrastructure, and Contracts flow in transitively via ProjectReference.
+    See ../README.md.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.IdentityAccess.Api</RootNamespace>
+    <AssemblyName>SBQR.Modules.IdentityAccess.Api</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      ASP.NET Core framework reference. Without this the API project cannot
+      compile controller / Authorization / JwtBearer / OpenAPI types. The
+      actual hosting happens in SBQR.Api; this assembly contributes
+      controllers + the IdentityAccessModule composition root, and is loaded
+      into the host process via ConfigureApplicationPartManager in
+      SBQR.Api/Program.cs.
+    -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.IdentityAccess.Application\SBQR.Modules.IdentityAccess.Application.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.IdentityAccess.Infrastructure\SBQR.Modules.IdentityAccess.Infrastructure.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.IdentityAccess.Contracts\SBQR.Modules.IdentityAccess.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <!-- [ApiVersion] attribute for URL-segment API versioning; the versioning
+         pipeline itself is owned by the host (SBQR.Api Program.cs §7c). -->
+    <PackageReference Include="Asp.Versioning.Abstractions" />
+  </ItemGroup>
+
+</Project>

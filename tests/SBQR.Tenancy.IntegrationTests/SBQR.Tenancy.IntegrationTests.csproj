@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Tenancy.IntegrationTests — integration tests that exercise the full
+    Tenancy & Access flow against a real PostgreSQL container.
+
+    The DB schema is owned by the external migration tool and must already be
+    applied to the test database before this assembly runs (the fixture fails
+    fast with a descriptive error if the canonical schema is missing). EF
+    Core is used as the runtime read/write layer only — never as the schema
+    source of truth. The schema-vs-model drift test in
+    Schema/SchemaModelDriftTests.cs catches divergence between the SQL
+    scripts and the IEntityTypeConfiguration classes on every CI run.
+
+    These tests require Docker Desktop running locally. CI is expected to bring
+    up an ephemeral PostgreSQL container via the same Testcontainers library.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Tenancy.IntegrationTests</RootNamespace>
+    <AssemblyName>SBQR.Tenancy.IntegrationTests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      SBQR.Api is referenced so the test project can compose the full module
+      graph (Program.cs partial) through the same WebApplicationFactory host.
+      This transitively pulls in ASP.NET Core; that's acceptable because the
+      tests already need a host-style composition root and the heavy
+      reference is shared with other test projects.
+    -->
+    <ProjectReference Include="..\..\src\Host\SBQR.Api\SBQR.Api.csproj" />
+    <ProjectReference Include="..\..\src\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenancy\SBQR.Modules.Tenancy.Domain\SBQR.Modules.Tenancy.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenancy\SBQR.Modules.Tenancy.Application\SBQR.Modules.Tenancy.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenancy\SBQR.Modules.Tenancy.Infrastructure\SBQR.Modules.Tenancy.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenancy\SBQR.Modules.Tenancy.Api\SBQR.Modules.Tenancy.Api.csproj" />
+    <ProjectReference Include="..\SBQR.Tests.Common\SBQR.Tests.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- xUnit + assertions + mocking -->
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="NSubstitute" />
+
+    <!-- Real-PostgreSQL test infrastructure -->
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Respawn" />
+    <PackageReference Include="Npgsql" />
+  </ItemGroup>
+
+</Project>

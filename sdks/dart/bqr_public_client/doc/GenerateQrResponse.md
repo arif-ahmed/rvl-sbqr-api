@@ -1,0 +1,18 @@
+# bqr_public_client.model.GenerateQrResponse
+
+## Load the model package
+```dart
+import 'package:bqr_public_client/api.dart';
+```
+
+## Properties
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**qrPayload** | **String** |  | 
+**payloadHash** | **String** |  | 
+**qrType** | **String** |  | 
+**signatureKeyVersion** | [**JsonObject**](.md) |  | 
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
+
+

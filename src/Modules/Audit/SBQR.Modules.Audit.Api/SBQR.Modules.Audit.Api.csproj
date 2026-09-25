@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.Audit.Api — composition root. Hosts AuditModule (IModule).
+    Domain, Application, and Infrastructure flow in transitively via
+    ProjectReference. The audit-export admin endpoints land here in epic-9.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.Audit.Api</RootNamespace>
+    <AssemblyName>SBQR.Modules.Audit.Api</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.Audit.Application\SBQR.Modules.Audit.Application.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.Audit.Infrastructure\SBQR.Modules.Audit.Infrastructure.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.Audit.Contracts\SBQR.Modules.Audit.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

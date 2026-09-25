@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.IdentityAccess.Contracts — the published language of the
+    Identity & Access bounded context. This is the ONLY project other modules
+    may reference (tactical-design.md §4/§5). The Tenancy module uses
+    ITenantConfigurationProvisioner during the register / suspend / reactivate
+    cascades without referencing IdentityAccess.Domain or
+    IdentityAccess.Infrastructure.
+
+    Keep it dependency-free: no MediatR, no EF Core, no ASP.NET Core.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.IdentityAccess.Contracts</RootNamespace>
+    <AssemblyName>SBQR.Modules.IdentityAccess.Contracts</AssemblyName>
+  </PropertyGroup>
+
+</Project>

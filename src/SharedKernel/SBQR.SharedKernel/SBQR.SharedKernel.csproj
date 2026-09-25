@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.SharedKernel — pure C# shared kernel.
+
+    Zero project references. Zero infrastructure. Zero IO.
+
+    Holds the DDD tactical primitives (Entity, AggregateRoot, ValueObject,
+    IDomainEvent), the cross-cutting application abstractions (IModule,
+    Result, ValidationBehavior, IAuditLogger, ICurrentTenant, PolicyNames),
+    the persistence abstractions (IRepository, IUnitOfWork,
+    AuditColumnInterceptor), and the cryptography abstractions
+    (ISigningProvider, ISignatureVerifier).
+
+    See tactical-design.md §3, §5.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.SharedKernel</RootNamespace>
+    <AssemblyName>SBQR.SharedKernel</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      MediatR provides IRequest<T>, INotification, INotificationHandler<T>,
+      and IPipelineBehavior<,>. The contracts-only package (MediatR.Contracts)
+      does not include INotificationHandler<T>, so the kernel depends on the
+      full MediatR package. This keeps the kernel's logical purity intact —
+      it still has zero project references to other SBQR projects.
+    -->
+    <PackageReference Include="MediatR" />
+    <!--
+      The Microsoft.Extensions.* abstractions (IServiceCollection,
+      IConfiguration) are needed by IModule and Result types. The
+      shared kernel still has zero project references to other SBQR
+      projects — these are pure abstractions.
+    -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <!--
+      FluentValidation abstractions (IValidator<T>) are needed by the
+      cross-module ValidationBehavior. The kernel does not register
+      validators itself; the host wires AddValidatorsFromAssembly.
+    -->
+    <PackageReference Include="FluentValidation" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- MediatR.Contracts kept available for any future code that wants only
+         the markers (IRequest<T>, INotification). The full MediatR above
+         transitively pulls in the same types. -->
+    <PackageReference Include="MediatR.Contracts" />
+  </ItemGroup>
+
+</Project>

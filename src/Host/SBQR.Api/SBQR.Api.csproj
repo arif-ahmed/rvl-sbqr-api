@@ -1,0 +1,78 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    SBQR.Api — single Web API host for the modular monolith.
+
+    Composition root: discovers every IModule from the 7 module
+    Api assemblies, calls RegisterServices on each, wires ApplicationParts
+    so the modules' controllers are served from this process, configures
+    MediatR / FluentValidation / AutoMapper across all modules, and
+    registers the two OpenAPI documents (public + internal-admin).
+
+    Per docs/superpowers/specs/2026-09-04-public-vs-internal-api-docs-design.md:
+      - Native Microsoft.AspNetCore.OpenApi (NOT Swashbuckle) generates both
+        documents; Scalar.AspNetCore renders their UI.
+      - Document split via [ApiExplorerSettings(GroupName = "internal")]
+        + an OpenApiOptions.ShouldInclude predicate per document.
+      - v1.public + its UI (/docs/public) and v1.internal-admin + its UI
+        (/docs/internal-admin): both anonymous in every environment (the
+        Basic Auth docs gate was deprecated and removed).
+
+    The host has no DbContext of its own. Every module owns its DbContext.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Api</RootNamespace>
+    <AssemblyName>SBQR.Api</AssemblyName>
+    <UserSecretsId>sbqr-api-secrets</UserSecretsId>
+    <!--
+      AV0029 (standalone AddOpenApi superseded by Asp.Versioning's) is
+      suppressed project-wide: this host deliberately keeps hand-named
+      two-audience OpenAPI documents (v1.public + v1.internal-admin, both
+      anonymous) on the plain Microsoft.AspNetCore.OpenApi document
+      services — Asp.Versioning.OpenApi's auto-generated one-document-per-
+      version flow cannot express the audience split. Full rationale in
+      Program.cs §8. The source generator also reports one instance inside
+      its in-memory added syntax tree, which neither a pragma nor an
+      .editorconfig section can reach.
+    -->
+    <NoWarn>$(NoWarn);AV0029</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Shared kernel + the 7 module Api projects. No direct EF Core reference here. -->
+    <ProjectReference Include="..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+    <!-- Object storage: the host registers the one shared IObjectStorageFactory
+         (see Program.cs §5a) that any module resolves from DI. -->
+    <ProjectReference Include="..\..\SharedKernel\SBQR.SharedKernel.Storage\SBQR.SharedKernel.Storage.csproj" />
+    <!-- Tenancy is split into one project per Clean Architecture layer; the Api project
+         transitively pulls in Application, Infrastructure, and Domain. -->
+    <ProjectReference Include="..\..\Modules\Tenancy\SBQR.Modules.Tenancy.Api\SBQR.Modules.Tenancy.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\InstitutionTrust\SBQR.Modules.InstitutionTrust.Api\SBQR.Modules.InstitutionTrust.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\KeyCustody\SBQR.Modules.KeyCustody.Api\SBQR.Modules.KeyCustody.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\QrGeneration\SBQR.Modules.QrGeneration.Api\SBQR.Modules.QrGeneration.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\Verification\SBQR.Modules.Verification.Api\SBQR.Modules.Verification.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\Audit\SBQR.Modules.Audit.Api\SBQR.Modules.Audit.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\IdentityAccess\SBQR.Modules.IdentityAccess.Api\SBQR.Modules.IdentityAccess.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.OpenApi" />
+    <PackageReference Include="Scalar.AspNetCore" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="AutoMapper" />
+    <!-- URL-segment API versioning — see Program.cs §7c. -->
+    <PackageReference Include="Asp.Versioning.Mvc" />
+    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
+  </ItemGroup>
+
+  <!--
+    Database schema is owned by the external migration tool — no
+    migration runner and no SQL content globs live in this csproj.
+    See docs/docker/DEPLOYMENT.md for how migrations are run in each
+    environment.
+  -->
+
+</Project>

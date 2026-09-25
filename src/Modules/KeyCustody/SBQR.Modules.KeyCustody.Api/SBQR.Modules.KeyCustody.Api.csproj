@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.KeyCustody.Api — composition root. Hosts KeyCustodyModule
+    (IModule). The signing-provider switch + the vault key store + the
+    read-only DbContext + ISignatureVerifier are all wired here. Domain,
+    Application, and Infrastructure flow in transitively via ProjectReference.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.KeyCustody.Api</RootNamespace>
+    <AssemblyName>SBQR.Modules.KeyCustody.Api</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- [ApiVersion] attribute for URL-segment API versioning; the versioning
+         pipeline itself is owned by the host (SBQR.Api Program.cs §7c). -->
+    <PackageReference Include="Asp.Versioning.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.KeyCustody.Application\SBQR.Modules.KeyCustody.Application.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.KeyCustody.Infrastructure\SBQR.Modules.KeyCustody.Infrastructure.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.KeyCustody.Contracts\SBQR.Modules.KeyCustody.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

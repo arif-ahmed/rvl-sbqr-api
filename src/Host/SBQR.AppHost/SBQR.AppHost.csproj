@@ -1,0 +1,37 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.5.4">
+
+  <!--
+    SBQR.AppHost — LOCAL DEVELOPMENT ONLY orchestrator for the inner loop
+    (F5 / `dotnet run`). Not part of the shipped app: it is never referenced
+    by docker/Dockerfile.api and carries no OpenTelemetry/ServiceDefaults
+    wiring, since neither is named in docs/bb-banglaqr-p2p-specification.md
+    (AGENTS.md is spec-only). docker/docker-compose.yml remains the
+    CI/prod-parity path and is unaffected by this project.
+
+    Orchestrates: sbqr-postgres (3 logical databases), sbqr-api, and the
+    dev-only BB.TrustStoreMock.
+    See docs/aspire-local-dev-guide.md for how to run it and how
+    local secrets (S3 creds, bootstrap client secret hash) are supplied.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>SBQR.AppHost</RootNamespace>
+    <AssemblyName>SBQR.AppHost</AssemblyName>
+    <UserSecretsId>sbqr-apphost-secrets</UserSecretsId>
+    <!-- Matches the `dotnet new aspire-apphost` template default. `dotnet run`
+         (this repo's documented workflow — see docs/aspire-local-dev-guide.md)
+         works either way; this just avoids the ASPIRE010 build warning. -->
+    <AspireUseCliBundle>true</AspireUseCliBundle>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Api\SBQR.Api.csproj" />
+    <ProjectReference Include="..\BB.TrustStoreMock\BB.TrustStoreMock.csproj" />
+  </ItemGroup>
+
+</Project>

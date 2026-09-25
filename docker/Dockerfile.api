@@ -1,0 +1,184 @@
+# =============================================================================
+# SBQR.Api — multi-stage Dockerfile.
+#
+# The same image serves local docker-compose, staging (Azure Container Apps),
+# and production (AKS). Only the orchestration + injected secrets differ.
+#
+# Build:   docker build -f docker/Dockerfile.api -t sbqr-api:<sha> .
+# Run:     docker run --rm -p 8080:8080 sbqr-api:<sha>
+#
+# The SBQR.Api image does NOT run database migrations. Apply the canonical
+# schema to the target database with the external migration tool before
+# (or while) the API container starts — see docs/docker/DEPLOYMENT.md.
+#
+# Image invariants (required by docs/docker/DEPLOYMENT.md):
+#   - Runs as UID 1000 (app) so the pod securityContext runAsNonRoot passes.
+#   - Listens on :8080 (overridden via ASPNETCORE_URLS at runtime if needed).
+#   - PID 1 is tini, so SIGTERM from Kubernetes actually reaches dotnet.
+#   - ca-certificates are present (Azure / PG over TLS).
+# =============================================================================
+
+# syntax=docker/dockerfile:1.7
+
+# -----------------------------------------------------------------------------
+# Stage 1 — build
+# -----------------------------------------------------------------------------
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+
+# Toolchain hygiene — quiet, no telemetry, skip first-run experience, no XML
+# doc generation (faster build, smaller publish output).
+ENV DEBIAN_FRONTEND=noninteractive \
+    DOTNET_NOLOGO=true \
+    DOTNET_CLI_TELEMETRY_OPTOUT=true \
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE=true \
+    DOTNET_RUNNING_IN_CONTAINER=true \
+    NUGET_XMLDOC_MODE=skip \
+    NUGET_PACKAGES=/home/app/.nuget/packages \
+    PATH="/home/app/.dotnet/tools:${PATH}"
+
+# Create the non-root user up-front so the BuildKit cache mount can be
+# owned by UID 1000 (avoids chown during the build). The .NET 10 base images
+# already ship an `app` user (UID 1654); the default UID 1000 belongs to the
+# unused `ubuntu` placeholder — free it, then move `app` onto UID 1000.
+RUN userdel --remove ubuntu \
+    && usermod --uid 1000 app \
+    && chown -R app:app /home/app
+
+WORKDIR /src
+
+# Restore as a separate layer so source changes don't invalidate the
+# (expensive) NuGet download. Central Package Management + per-project lock
+# files mean a single restore covers every project in the solution.
+COPY Directory.Build.props Directory.Packages.props SBQR.slnx ./
+COPY src/SharedKernel/SBQR.SharedKernel/SBQR.SharedKernel.csproj                      src/SharedKernel/SBQR.SharedKernel/
+COPY src/SharedKernel/SBQR.SharedKernel.Storage/SBQR.SharedKernel.Storage.csproj      src/SharedKernel/SBQR.SharedKernel.Storage/
+# Every module is split into one project per Clean Architecture layer
+# (Domain / Application / Infrastructure / Api / Contracts).
+COPY src/Modules/Audit/SBQR.Modules.Audit.Api/SBQR.Modules.Audit.Api.csproj                        src/Modules/Audit/SBQR.Modules.Audit.Api/
+COPY src/Modules/Audit/SBQR.Modules.Audit.Application/SBQR.Modules.Audit.Application.csproj        src/Modules/Audit/SBQR.Modules.Audit.Application/
+COPY src/Modules/Audit/SBQR.Modules.Audit.Contracts/SBQR.Modules.Audit.Contracts.csproj            src/Modules/Audit/SBQR.Modules.Audit.Contracts/
+COPY src/Modules/Audit/SBQR.Modules.Audit.Domain/SBQR.Modules.Audit.Domain.csproj                  src/Modules/Audit/SBQR.Modules.Audit.Domain/
+COPY src/Modules/Audit/SBQR.Modules.Audit.Infrastructure/SBQR.Modules.Audit.Infrastructure.csproj  src/Modules/Audit/SBQR.Modules.Audit.Infrastructure/
+COPY src/Modules/IdentityAccess/SBQR.Modules.IdentityAccess.Api/SBQR.Modules.IdentityAccess.Api.csproj                        src/Modules/IdentityAccess/SBQR.Modules.IdentityAccess.Api/
+COPY src/Modules/IdentityAccess/SBQR.Modules.IdentityAccess.Application/SBQR.Modules.IdentityAccess.Application.csproj        src/Modules/IdentityAccess/SBQR.Modules.IdentityAccess.Application/
+COPY src/Modules/IdentityAccess/SBQR.Modules.IdentityAccess.Contracts/SBQR.Modules.IdentityAccess.Contracts.csproj            src/Modules/IdentityAccess/SBQR.Modules.IdentityAccess.Contracts/
+COPY src/Modules/IdentityAccess/SBQR.Modules.IdentityAccess.Domain/SBQR.Modules.IdentityAccess.Domain.csproj                  src/Modules/IdentityAccess/SBQR.Modules.IdentityAccess.Domain/
+COPY src/Modules/IdentityAccess/SBQR.Modules.IdentityAccess.Infrastructure/SBQR.Modules.IdentityAccess.Infrastructure.csproj  src/Modules/IdentityAccess/SBQR.Modules.IdentityAccess.Infrastructure/
+COPY src/Modules/InstitutionTrust/SBQR.Modules.InstitutionTrust.Api/SBQR.Modules.InstitutionTrust.Api.csproj                        src/Modules/InstitutionTrust/SBQR.Modules.InstitutionTrust.Api/
+COPY src/Modules/InstitutionTrust/SBQR.Modules.InstitutionTrust.Application/SBQR.Modules.InstitutionTrust.Application.csproj        src/Modules/InstitutionTrust/SBQR.Modules.InstitutionTrust.Application/
+COPY src/Modules/InstitutionTrust/SBQR.Modules.InstitutionTrust.Contracts/SBQR.Modules.InstitutionTrust.Contracts.csproj            src/Modules/InstitutionTrust/SBQR.Modules.InstitutionTrust.Contracts/
+COPY src/Modules/InstitutionTrust/SBQR.Modules.InstitutionTrust.Domain/SBQR.Modules.InstitutionTrust.Domain.csproj                  src/Modules/InstitutionTrust/SBQR.Modules.InstitutionTrust.Domain/
+COPY src/Modules/InstitutionTrust/SBQR.Modules.InstitutionTrust.Infrastructure/SBQR.Modules.InstitutionTrust.Infrastructure.csproj  src/Modules/InstitutionTrust/SBQR.Modules.InstitutionTrust.Infrastructure/
+COPY src/Modules/KeyCustody/SBQR.Modules.KeyCustody.Api/SBQR.Modules.KeyCustody.Api.csproj                        src/Modules/KeyCustody/SBQR.Modules.KeyCustody.Api/
+COPY src/Modules/KeyCustody/SBQR.Modules.KeyCustody.Application/SBQR.Modules.KeyCustody.Application.csproj        src/Modules/KeyCustody/SBQR.Modules.KeyCustody.Application/
+COPY src/Modules/KeyCustody/SBQR.Modules.KeyCustody.Contracts/SBQR.Modules.KeyCustody.Contracts.csproj            src/Modules/KeyCustody/SBQR.Modules.KeyCustody.Contracts/
+COPY src/Modules/KeyCustody/SBQR.Modules.KeyCustody.Domain/SBQR.Modules.KeyCustody.Domain.csproj                  src/Modules/KeyCustody/SBQR.Modules.KeyCustody.Domain/
+COPY src/Modules/KeyCustody/SBQR.Modules.KeyCustody.Infrastructure/SBQR.Modules.KeyCustody.Infrastructure.csproj  src/Modules/KeyCustody/SBQR.Modules.KeyCustody.Infrastructure/
+COPY src/Modules/QrGeneration/SBQR.Modules.QrGeneration.Api/SBQR.Modules.QrGeneration.Api.csproj                        src/Modules/QrGeneration/SBQR.Modules.QrGeneration.Api/
+COPY src/Modules/QrGeneration/SBQR.Modules.QrGeneration.Application/SBQR.Modules.QrGeneration.Application.csproj        src/Modules/QrGeneration/SBQR.Modules.QrGeneration.Application/
+COPY src/Modules/QrGeneration/SBQR.Modules.QrGeneration.Contracts/SBQR.Modules.QrGeneration.Contracts.csproj            src/Modules/QrGeneration/SBQR.Modules.QrGeneration.Contracts/
+COPY src/Modules/QrGeneration/SBQR.Modules.QrGeneration.Domain/SBQR.Modules.QrGeneration.Domain.csproj                  src/Modules/QrGeneration/SBQR.Modules.QrGeneration.Domain/
+COPY src/Modules/QrGeneration/SBQR.Modules.QrGeneration.Infrastructure/SBQR.Modules.QrGeneration.Infrastructure.csproj  src/Modules/QrGeneration/SBQR.Modules.QrGeneration.Infrastructure/
+COPY src/Modules/Tenancy/SBQR.Modules.Tenancy.Api/SBQR.Modules.Tenancy.Api.csproj                        src/Modules/Tenancy/SBQR.Modules.Tenancy.Api/
+COPY src/Modules/Tenancy/SBQR.Modules.Tenancy.Application/SBQR.Modules.Tenancy.Application.csproj        src/Modules/Tenancy/SBQR.Modules.Tenancy.Application/
+COPY src/Modules/Tenancy/SBQR.Modules.Tenancy.Contracts/SBQR.Modules.Tenancy.Contracts.csproj            src/Modules/Tenancy/SBQR.Modules.Tenancy.Contracts/
+COPY src/Modules/Tenancy/SBQR.Modules.Tenancy.Domain/SBQR.Modules.Tenancy.Domain.csproj                  src/Modules/Tenancy/SBQR.Modules.Tenancy.Domain/
+COPY src/Modules/Tenancy/SBQR.Modules.Tenancy.Infrastructure/SBQR.Modules.Tenancy.Infrastructure.csproj  src/Modules/Tenancy/SBQR.Modules.Tenancy.Infrastructure/
+COPY src/Modules/Verification/SBQR.Modules.Verification.Api/SBQR.Modules.Verification.Api.csproj                        src/Modules/Verification/SBQR.Modules.Verification.Api/
+COPY src/Modules/Verification/SBQR.Modules.Verification.Application/SBQR.Modules.Verification.Application.csproj        src/Modules/Verification/SBQR.Modules.Verification.Application/
+COPY src/Modules/Verification/SBQR.Modules.Verification.Contracts/SBQR.Modules.Verification.Contracts.csproj            src/Modules/Verification/SBQR.Modules.Verification.Contracts/
+COPY src/Modules/Verification/SBQR.Modules.Verification.Domain/SBQR.Modules.Verification.Domain.csproj                  src/Modules/Verification/SBQR.Modules.Verification.Domain/
+COPY src/Modules/Verification/SBQR.Modules.Verification.Infrastructure/SBQR.Modules.Verification.Infrastructure.csproj  src/Modules/Verification/SBQR.Modules.Verification.Infrastructure/
+COPY src/Host/SBQR.Api/SBQR.Api.csproj                                                src/Host/SBQR.Api/
+# SBQR.AppHost is LOCAL-DEV-ONLY (see docs/aspire-local-dev-guide.md) and is
+# never published here — it's only listed in SBQR.slnx, so `dotnet restore
+# SBQR.slnx` below needs its csproj present to resolve the solution graph.
+COPY src/Host/SBQR.AppHost/SBQR.AppHost.csproj                                        src/Host/SBQR.AppHost/
+# BB.TrustStoreMock is LOCAL-DEV-ONLY (see src/Host/BB.TrustStoreMock/README.md)
+# and is never published here — same deal as the AppHost above: it is listed
+# in SBQR.slnx, so `dotnet restore SBQR.slnx` below needs its csproj present.
+COPY src/Host/BB.TrustStoreMock/BB.TrustStoreMock.csproj                            src/Host/BB.TrustStoreMock/
+COPY tests/SBQR.ArchitectureTests/SBQR.ArchitectureTests.csproj                       tests/SBQR.ArchitectureTests/
+COPY tests/SBQR.InstitutionTrust.IntegrationTests/SBQR.InstitutionTrust.IntegrationTests.csproj tests/SBQR.InstitutionTrust.IntegrationTests/
+COPY tests/SBQR.Modules.InstitutionTrust.Tests/SBQR.Modules.InstitutionTrust.Tests.csproj       tests/SBQR.Modules.InstitutionTrust.Tests/
+COPY tests/SBQR.Modules.KeyCustody.Tests/SBQR.Modules.KeyCustody.Tests.csproj         tests/SBQR.Modules.KeyCustody.Tests/
+COPY tests/SBQR.Modules.Tenancy.Tests/SBQR.Modules.Tenancy.Tests.csproj               tests/SBQR.Modules.Tenancy.Tests/
+COPY tests/SBQR.Modules.Verification.Tests/SBQR.Modules.Verification.Tests.csproj     tests/SBQR.Modules.Verification.Tests/
+COPY tests/SBQR.Qr.IntegrationTests/SBQR.Qr.IntegrationTests.csproj                   tests/SBQR.Qr.IntegrationTests/
+COPY tests/SBQR.Tenancy.IntegrationTests/SBQR.Tenancy.IntegrationTests.csproj         tests/SBQR.Tenancy.IntegrationTests/
+COPY tests/SBQR.Tests.Common/SBQR.Tests.Common.csproj                                 tests/SBQR.Tests.Common/
+
+RUN --mount=type=cache,target=/home/app/.nuget/packages,uid=1000 \
+    dotnet restore SBQR.slnx
+
+# Now copy the rest of the source tree. Anything that did not change since the
+# last build reuses the restore layer above.
+COPY . .
+
+RUN --mount=type=cache,target=/home/app/.nuget/packages,uid=1000 \
+    dotnet publish src/Host/SBQR.Api/SBQR.Api.csproj \
+        -c Release \
+        -o /app/publish \
+        --no-restore \
+        /p:UseAppHost=false \
+        /p:PublishSingleFile=false \
+        /p:DebugType=embedded \
+        /p:EnableCompressionInSingleFile=true \
+    && chown -R app:app /app/publish
+
+# -----------------------------------------------------------------------------
+# Stage 2 — runtime
+# -----------------------------------------------------------------------------
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+
+# Provenance labels — populated by `docker build --label` in CI as well.
+LABEL org.opencontainers.image.title="SBQR.Api" \
+      org.opencontainers.image.description="Secure BQR Manager — modular monolith host (.NET 10)." \
+      org.opencontainers.image.source="https://github.com/<org>/rvl-secure-bqr-manager" \
+      org.opencontainers.image.licenses="Proprietary" \
+      org.opencontainers.image.vendor="SBQR"
+
+# Refresh CA bundle + install tini for proper signal handling. We keep the
+# surface tiny. NOTE: the .NET 10 base images no longer ship wget (the .NET 8/9
+# images did) — curl is installed here for the container HEALTHCHECK below.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        tini \
+        ca-certificates \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Non-root user. UID 1000 must match the pod securityContext in production
+# (runAsNonRoot: true / runAsUser: 1000). Free the default UID 1000 (unused
+# `ubuntu` placeholder) and move the base image's `app` user onto it.
+RUN userdel --remove ubuntu \
+    && usermod --uid 1000 app \
+    && chown -R app:app /home/app
+
+WORKDIR /app
+
+# Copy the publish output from the build stage and give the app user ownership.
+COPY --from=build --chown=app:app /app/publish /app
+
+# Default URL — overridable at runtime via ASPNETCORE_URLS. We do NOT bake
+# 5080 (the developer-host port) so prod-by-default is sane.
+ENV ASPNETCORE_URLS=http://+:8080 \
+    ASPNETCORE_ENVIRONMENT=Production \
+    DOTNET_RUNNING_IN_CONTAINER=true \
+    DOTNET_NOLOGO=true \
+    DOTNET_CLI_TELEMETRY_OPTOUT=true
+
+USER app
+
+EXPOSE 8080
+
+# Hit /health/live (mapped in Program.cs) — does not require DB connectivity.
+# Start-period gives the JIT + module-discovery time before the first probe
+# counts as a failure.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
+    CMD curl -fsS http://127.0.0.1:8080/health/live || exit 1
+
+# tini reaps zombies and forwards SIGTERM to dotnet. Without it, `docker stop`
+# would 10s-SIGKILL the process and lose any in-flight graceful shutdown.
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["dotnet", "SBQR.Api.dll"]

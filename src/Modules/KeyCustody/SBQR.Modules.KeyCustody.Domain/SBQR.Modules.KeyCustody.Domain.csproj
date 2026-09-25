@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.KeyCustody.Domain — pure domain layer for the KeyCustody
+    bounded context. The CustodyKeyRecord read-model entity lives here.
+    The cryptographic boundary (PemVaultSigningProvider, Ed25519SignatureVerifier,
+    EncryptedFileSigningKeyStore) lives in Infrastructure/Custody/ and
+    must NOT be exposed to other modules — those go through the kernel
+    abstractions in SBQR.SharedKernel.Cryptography.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.KeyCustody.Domain</RootNamespace>
+    <AssemblyName>SBQR.Modules.KeyCustody.Domain</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

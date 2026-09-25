@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.InstitutionTrust.Contracts — the published language of the
+    InstitutionTrust bounded context. This is the ONLY project other
+    modules may reference (tactical-design.md §4/§5).
+
+    Cross-module consumer:
+      Verification     — GetInstitutionPublicKeyQuery (Tag 26 sub 01/02)
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.InstitutionTrust.Contracts</RootNamespace>
+    <AssemblyName>SBQR.Modules.InstitutionTrust.Contracts</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR.Contracts" />
+  </ItemGroup>
+
+</Project>

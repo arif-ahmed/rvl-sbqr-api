@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.KeyCustody.Tests — placeholder for epic-5 (KeyCustody stories).
+
+    Real tests for the key lifecycle, sign payload handler, and
+    NSec↔BouncyCastle cross-implementation conformance land in epic-5.
+
+    KeyCustody is split into one project per Clean Architecture layer; the
+    cryptographic boundary (PemVaultSigningProvider, Ed25519SignatureVerifier,
+    EncryptedFileSigningKeyStore) lives in the Infrastructure/Custody
+    namespace, referenced here so the existing tests compile unchanged.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.KeyCustody.Tests</RootNamespace>
+    <AssemblyName>SBQR.Modules.KeyCustody.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\SharedKernel\SBQR.SharedKernel.Storage\SBQR.SharedKernel.Storage.csproj" />
+    <ProjectReference Include="..\..\src\Modules\KeyCustody\SBQR.Modules.KeyCustody.Infrastructure\SBQR.Modules.KeyCustody.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\KeyCustody\SBQR.Modules.KeyCustody.Application\SBQR.Modules.KeyCustody.Application.csproj" />
+    <ProjectReference Include="..\SBQR.Tests.Common\SBQR.Tests.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="NSec.Cryptography" />
+    <PackageReference Include="BouncyCastle.Cryptography" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <!--
+      S3SigningKeyStore / PemVaultSigningProviderNsecInteropTests spin up an
+      ephemeral LocalStack container per test run (Infrastructure/LocalStackS3Fixture.cs)
+      — never the real dev bucket. AWSSDK.S3 is needed here for direct-client
+      test assertions (tamper/versioning checks the IObjectStorage port
+      doesn't expose); Testcontainers owns the container lifecycle.
+    -->
+    <PackageReference Include="AWSSDK.S3" />
+    <PackageReference Include="Testcontainers" />
+  </ItemGroup>
+
+</Project>

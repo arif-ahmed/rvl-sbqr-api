@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.QrGeneration.Api — composition root + HTTP surface. Hosts
+    QrGenerationModule (IModule) and the POST /qr/generate controller.
+    Domain, Application, and Infrastructure flow in transitively via
+    ProjectReference.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.QrGeneration.Api</RootNamespace>
+    <AssemblyName>SBQR.Modules.QrGeneration.Api</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- [ApiVersion] attribute for URL-segment API versioning; the versioning
+         pipeline itself is owned by the host (SBQR.Api Program.cs §7c). -->
+    <PackageReference Include="Asp.Versioning.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.QrGeneration.Application\SBQR.Modules.QrGeneration.Application.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.QrGeneration.Infrastructure\SBQR.Modules.QrGeneration.Infrastructure.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.QrGeneration.Contracts\SBQR.Modules.QrGeneration.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

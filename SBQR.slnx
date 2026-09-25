@@ -1,0 +1,73 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Host/">
+    <Project Path="src/Host/SBQR.Api/SBQR.Api.csproj" />
+    <Project Path="src/Host/SBQR.AppHost/SBQR.AppHost.csproj" />
+    <Project Path="src/Host/BB.TrustStoreMock/BB.TrustStoreMock.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Audit/">
+    <Project Path="src/Modules/Audit/SBQR.Modules.Audit.Api/SBQR.Modules.Audit.Api.csproj" />
+    <Project Path="src/Modules/Audit/SBQR.Modules.Audit.Application/SBQR.Modules.Audit.Application.csproj" />
+    <Project Path="src/Modules/Audit/SBQR.Modules.Audit.Contracts/SBQR.Modules.Audit.Contracts.csproj" />
+    <Project Path="src/Modules/Audit/SBQR.Modules.Audit.Domain/SBQR.Modules.Audit.Domain.csproj" />
+    <Project Path="src/Modules/Audit/SBQR.Modules.Audit.Infrastructure/SBQR.Modules.Audit.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/IdentityAccess/">
+    <Project Path="src/Modules/IdentityAccess/SBQR.Modules.IdentityAccess.Api/SBQR.Modules.IdentityAccess.Api.csproj" />
+    <Project Path="src/Modules/IdentityAccess/SBQR.Modules.IdentityAccess.Application/SBQR.Modules.IdentityAccess.Application.csproj" />
+    <Project Path="src/Modules/IdentityAccess/SBQR.Modules.IdentityAccess.Contracts/SBQR.Modules.IdentityAccess.Contracts.csproj" />
+    <Project Path="src/Modules/IdentityAccess/SBQR.Modules.IdentityAccess.Domain/SBQR.Modules.IdentityAccess.Domain.csproj" />
+    <Project Path="src/Modules/IdentityAccess/SBQR.Modules.IdentityAccess.Infrastructure/SBQR.Modules.IdentityAccess.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/InstitutionTrust/">
+    <Project Path="src/Modules/InstitutionTrust/SBQR.Modules.InstitutionTrust.Api/SBQR.Modules.InstitutionTrust.Api.csproj" />
+    <Project Path="src/Modules/InstitutionTrust/SBQR.Modules.InstitutionTrust.Application/SBQR.Modules.InstitutionTrust.Application.csproj" />
+    <Project Path="src/Modules/InstitutionTrust/SBQR.Modules.InstitutionTrust.Contracts/SBQR.Modules.InstitutionTrust.Contracts.csproj" />
+    <Project Path="src/Modules/InstitutionTrust/SBQR.Modules.InstitutionTrust.Domain/SBQR.Modules.InstitutionTrust.Domain.csproj" />
+    <Project Path="src/Modules/InstitutionTrust/SBQR.Modules.InstitutionTrust.Infrastructure/SBQR.Modules.InstitutionTrust.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/KeyCustody/">
+    <Project Path="src/Modules/KeyCustody/SBQR.Modules.KeyCustody.Api/SBQR.Modules.KeyCustody.Api.csproj" />
+    <Project Path="src/Modules/KeyCustody/SBQR.Modules.KeyCustody.Application/SBQR.Modules.KeyCustody.Application.csproj" />
+    <Project Path="src/Modules/KeyCustody/SBQR.Modules.KeyCustody.Contracts/SBQR.Modules.KeyCustody.Contracts.csproj" />
+    <Project Path="src/Modules/KeyCustody/SBQR.Modules.KeyCustody.Domain/SBQR.Modules.KeyCustody.Domain.csproj" />
+    <Project Path="src/Modules/KeyCustody/SBQR.Modules.KeyCustody.Infrastructure/SBQR.Modules.KeyCustody.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/QrGeneration/">
+    <Project Path="src/Modules/QrGeneration/SBQR.Modules.QrGeneration.Api/SBQR.Modules.QrGeneration.Api.csproj" />
+    <Project Path="src/Modules/QrGeneration/SBQR.Modules.QrGeneration.Application/SBQR.Modules.QrGeneration.Application.csproj" />
+    <Project Path="src/Modules/QrGeneration/SBQR.Modules.QrGeneration.Contracts/SBQR.Modules.QrGeneration.Contracts.csproj" />
+    <Project Path="src/Modules/QrGeneration/SBQR.Modules.QrGeneration.Domain/SBQR.Modules.QrGeneration.Domain.csproj" />
+    <Project Path="src/Modules/QrGeneration/SBQR.Modules.QrGeneration.Infrastructure/SBQR.Modules.QrGeneration.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Tenancy/">
+    <Project Path="src/Modules/Tenancy/SBQR.Modules.Tenancy.Api/SBQR.Modules.Tenancy.Api.csproj" />
+    <Project Path="src/Modules/Tenancy/SBQR.Modules.Tenancy.Application/SBQR.Modules.Tenancy.Application.csproj" />
+    <Project Path="src/Modules/Tenancy/SBQR.Modules.Tenancy.Contracts/SBQR.Modules.Tenancy.Contracts.csproj" />
+    <Project Path="src/Modules/Tenancy/SBQR.Modules.Tenancy.Domain/SBQR.Modules.Tenancy.Domain.csproj" />
+    <Project Path="src/Modules/Tenancy/SBQR.Modules.Tenancy.Infrastructure/SBQR.Modules.Tenancy.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Verification/">
+    <Project Path="src/Modules/Verification/SBQR.Modules.Verification.Api/SBQR.Modules.Verification.Api.csproj" />
+    <Project Path="src/Modules/Verification/SBQR.Modules.Verification.Application/SBQR.Modules.Verification.Application.csproj" />
+    <Project Path="src/Modules/Verification/SBQR.Modules.Verification.Contracts/SBQR.Modules.Verification.Contracts.csproj" />
+    <Project Path="src/Modules/Verification/SBQR.Modules.Verification.Domain/SBQR.Modules.Verification.Domain.csproj" />
+    <Project Path="src/Modules/Verification/SBQR.Modules.Verification.Infrastructure/SBQR.Modules.Verification.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/SharedKernel/">
+    <Project Path="src/SharedKernel/SBQR.SharedKernel/SBQR.SharedKernel.csproj" />
+    <Project Path="src/SharedKernel/SBQR.SharedKernel.Storage/SBQR.SharedKernel.Storage.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SBQR.ArchitectureTests/SBQR.ArchitectureTests.csproj" />
+    <Project Path="tests/SBQR.InstitutionTrust.IntegrationTests/SBQR.InstitutionTrust.IntegrationTests.csproj" />
+    <Project Path="tests/SBQR.Modules.InstitutionTrust.Tests/SBQR.Modules.InstitutionTrust.Tests.csproj" />
+    <Project Path="tests/SBQR.Modules.KeyCustody.Tests/SBQR.Modules.KeyCustody.Tests.csproj" />
+    <Project Path="tests/SBQR.Modules.Tenancy.Tests/SBQR.Modules.Tenancy.Tests.csproj" />
+    <Project Path="tests/SBQR.Modules.Verification.Tests/SBQR.Modules.Verification.Tests.csproj" />
+    <Project Path="tests/SBQR.Qr.IntegrationTests/SBQR.Qr.IntegrationTests.csproj" />
+    <Project Path="tests/SBQR.Tenancy.IntegrationTests/SBQR.Tenancy.IntegrationTests.csproj" />
+    <Project Path="tests/SBQR.Tests.Common/SBQR.Tests.Common.csproj" />
+  </Folder>
+</Solution>

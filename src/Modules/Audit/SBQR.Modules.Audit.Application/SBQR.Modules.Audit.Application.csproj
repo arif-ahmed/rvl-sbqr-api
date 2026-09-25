@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.Audit.Application — orchestration layer. Currently empty:
+    AuditLogger (the IAuditLogger implementation) lives in Infrastructure
+    because it is one short, side-effecting adapter. When epic-9 lands the
+    audit-export endpoints, the export queries and validators move here.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.Audit.Application</RootNamespace>
+    <AssemblyName>SBQR.Modules.Audit.Application</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.Audit.Domain\SBQR.Modules.Audit.Domain.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.Audit.Contracts\SBQR.Modules.Audit.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+</Project>

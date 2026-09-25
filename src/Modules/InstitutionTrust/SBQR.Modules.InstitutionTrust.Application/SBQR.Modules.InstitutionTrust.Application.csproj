@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.InstitutionTrust.Application — orchestration layer.
+    MediatR commands/queries for the trust-directory read and admin upsert
+    paths live here, plus DailyTrustSyncService (the singleton hosted
+    service that polls the BB trust store once per SyncIntervalHours).
+
+    Within-module references: Application → Infrastructure is allowed for
+    the DbContext-backed handlers. The cross-module rule that forbids
+    Application → OTHER-module's Infrastructure (architecture test
+    Modules_should_not_reference_other_modules_Domain_or_Infrastructure)
+    is unchanged.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.InstitutionTrust.Application</RootNamespace>
+    <AssemblyName>SBQR.Modules.InstitutionTrust.Application</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.InstitutionTrust.Domain\SBQR.Modules.InstitutionTrust.Domain.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.InstitutionTrust.Contracts\SBQR.Modules.InstitutionTrust.Contracts.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.InstitutionTrust.Infrastructure\SBQR.Modules.InstitutionTrust.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+  </ItemGroup>
+
+  <!--
+    EF Core is referenced from Application because the trust-directory
+    write paths use the DbContext directly from Application services —
+    InstitutionUpsertService is the single writer for institution_registries /
+    institution_keys and is invoked from both UpsertInstitutionCommand and
+    DailyTrustSyncService. The MediatR handlers themselves hold no DbContext;
+    they delegate to InstitutionUpsertService. The exception is contained: the
+    architecture test forbids Application → OTHER-module's Infrastructure, not
+    Application → own Infrastructure.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+  </ItemGroup>
+
+</Project>

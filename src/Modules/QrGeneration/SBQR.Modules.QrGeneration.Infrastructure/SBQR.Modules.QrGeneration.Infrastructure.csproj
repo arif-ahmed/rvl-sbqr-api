@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.QrGeneration.Infrastructure — EF Core persistence (qr_generations)
+    + Npgsql error mapping (PostgresException 23505) for the idempotency-key
+    uniqueness contract. The QR payload itself is never persisted (assertion L3).
+
+    Infrastructure depends on Domain (and SharedKernel for the crypto
+    abstractions) only. Handlers live in Application and are wired into the
+    composition root by the Api layer; this project intentionally does NOT
+    reference Application to avoid a circular dependency.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.QrGeneration.Infrastructure</RootNamespace>
+    <AssemblyName>SBQR.Modules.QrGeneration.Infrastructure</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.QrGeneration.Domain\SBQR.Modules.QrGeneration.Domain.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Npgsql" />
+  </ItemGroup>
+
+</Project>

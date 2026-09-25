@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Qr.IntegrationTests — end-to-end QR round-trip tests (Sep-17 demo path).
+
+    Real PostgreSQL (Testcontainers) + real Ed25519 crypto through the actual
+    module composition: register tenant → custody key in the encrypted file
+    vault → generate signed QR → validate own QR (OWN_CUSTODY) → validate an
+    external institution's QR (TRUST_DIRECTORY) → fail-closed paths.
+
+    All five sub-domain modules are now split per layer; only the Api
+    projects are referenced here because they transitively expose every
+    handler, repository, and DbContext needed for composition-root testing.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Qr.IntegrationTests</RootNamespace>
+    <AssemblyName>SBQR.Qr.IntegrationTests</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Host\SBQR.Api\SBQR.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenancy\SBQR.Modules.Tenancy.Api\SBQR.Modules.Tenancy.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\IdentityAccess\SBQR.Modules.IdentityAccess.Api\SBQR.Modules.IdentityAccess.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\IdentityAccess\SBQR.Modules.IdentityAccess.Infrastructure\SBQR.Modules.IdentityAccess.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\KeyCustody\SBQR.Modules.KeyCustody.Api\SBQR.Modules.KeyCustody.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\InstitutionTrust\SBQR.Modules.InstitutionTrust.Api\SBQR.Modules.InstitutionTrust.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\QrGeneration\SBQR.Modules.QrGeneration.Api\SBQR.Modules.QrGeneration.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Verification\SBQR.Modules.Verification.Api\SBQR.Modules.Verification.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Respawn" />
+    <PackageReference Include="Npgsql" />
+  </ItemGroup>
+
+</Project>

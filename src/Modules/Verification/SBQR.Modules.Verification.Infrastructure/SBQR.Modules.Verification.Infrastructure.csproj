@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.Verification.Infrastructure — EF Core persistence
+    (qr_transactions, qr_validations). The handler writes both rows in a
+    single SaveChanges so an attempt always records exactly one outcome.
+
+    Infrastructure depends on Domain (and SharedKernel) only. Handlers live
+    in Application and are wired into the composition root by the Api
+    layer; this project intentionally does NOT reference Application to
+    avoid a circular dependency.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.Verification.Infrastructure</RootNamespace>
+    <AssemblyName>SBQR.Modules.Verification.Infrastructure</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.Verification.Domain\SBQR.Modules.Verification.Domain.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+
+</Project>

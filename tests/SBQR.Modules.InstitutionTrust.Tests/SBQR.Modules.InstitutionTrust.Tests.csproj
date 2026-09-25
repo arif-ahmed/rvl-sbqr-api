@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.InstitutionTrust.Tests — fast, no-database unit tests for
+    the InstitutionTrust module (HttpTrustStoreClient today). DB-touching
+    behavior (InstitutionUpsertService, DailyTrustSyncService) lives in
+    tests/SBQR.InstitutionTrust.IntegrationTests against a real Postgres
+    container instead.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.InstitutionTrust.Tests</RootNamespace>
+    <AssemblyName>SBQR.Modules.InstitutionTrust.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\Modules\InstitutionTrust\SBQR.Modules.InstitutionTrust.Application\SBQR.Modules.InstitutionTrust.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\InstitutionTrust\SBQR.Modules.InstitutionTrust.Infrastructure\SBQR.Modules.InstitutionTrust.Infrastructure.csproj" />
+    <ProjectReference Include="..\SBQR.Tests.Common\SBQR.Tests.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="NSubstitute" />
+  </ItemGroup>
+
+</Project>

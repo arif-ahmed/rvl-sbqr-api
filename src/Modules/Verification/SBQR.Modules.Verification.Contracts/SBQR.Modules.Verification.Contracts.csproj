@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.Verification.Contracts — the published language of the
+    Verification bounded context. This is the ONLY project other modules
+    may reference (tactical-design.md §4/§5).
+
+    Currently empty: Verification is invoked only by the API host through
+    MediatR (which lives in SBQR.SharedKernel), and by no other module.
+    Reserved for cross-module seams that land in later verification stories.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.Verification.Contracts</RootNamespace>
+    <AssemblyName>SBQR.Modules.Verification.Contracts</AssemblyName>
+  </PropertyGroup>
+
+</Project>

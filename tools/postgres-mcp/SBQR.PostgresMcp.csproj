@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.PostgresMcp — local-only stdio MCP server for inspecting the SBQR
+    PostgreSQL databases (sbqr_app + sbqr_key_vault) during development.
+
+    Dev tool only: not part of the SBQR.Api runtime, not in SBQR.slnx,
+    never deployed. See docs/dev-mcp-postgres.md.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>SBQR.PostgresMcp</RootNamespace>
+    <AssemblyName>SBQR.PostgresMcp</AssemblyName>
+    <!-- No lock file for this dev-only tool; versions still pinned centrally (C21). -->
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="ModelContextProtocol" />
+    <PackageReference Include="Npgsql" />
+  </ItemGroup>
+
+</Project>

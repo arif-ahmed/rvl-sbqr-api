@@ -1,0 +1,92 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.ArchitectureTests — machine-checkable module-boundary guardrails.
+
+    Implements the rules from tactical-design.md §3/§5 and the surviving
+    invariants from puku.md §1 (private-key boundary) in compiler-grade
+    form via NetArchTest.Rules.
+
+    These tests replace the old grep-based guardrail tests; they fail
+    the build the moment a module imports a forbidden namespace or
+    references another module's Domain/Infrastructure layer.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.ArchitectureTests</RootNamespace>
+    <AssemblyName>SBQR.ArchitectureTests</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- All modules + shared kernel for cross-module checks. The
+         host (SBQR.Api) is deliberately NOT referenced — architecture
+         tests assert module isolation, not host composition.
+         The QrCodec lives inside the shared kernel (SBQR.SharedKernel.QrCodec
+         namespace); its purity rules are namespace-scoped in ModuleBoundaryTests.
+         Every module is now split into one project per Clean Architecture
+         layer; reference each layer explicitly so boundary rules can target
+         individual namespaces (Domain vs Infrastructure vs Application). -->
+    <ProjectReference Include="..\..\src\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+
+    <!-- InstitutionTrust -->
+    <ProjectReference Include="..\..\src\Modules\InstitutionTrust\SBQR.Modules.InstitutionTrust.Contracts\SBQR.Modules.InstitutionTrust.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\InstitutionTrust\SBQR.Modules.InstitutionTrust.Domain\SBQR.Modules.InstitutionTrust.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\InstitutionTrust\SBQR.Modules.InstitutionTrust.Application\SBQR.Modules.InstitutionTrust.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\InstitutionTrust\SBQR.Modules.InstitutionTrust.Infrastructure\SBQR.Modules.InstitutionTrust.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\InstitutionTrust\SBQR.Modules.InstitutionTrust.Api\SBQR.Modules.InstitutionTrust.Api.csproj" />
+
+    <!-- KeyCustody -->
+    <ProjectReference Include="..\..\src\Modules\KeyCustody\SBQR.Modules.KeyCustody.Contracts\SBQR.Modules.KeyCustody.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\KeyCustody\SBQR.Modules.KeyCustody.Domain\SBQR.Modules.KeyCustody.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\KeyCustody\SBQR.Modules.KeyCustody.Application\SBQR.Modules.KeyCustody.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\KeyCustody\SBQR.Modules.KeyCustody.Infrastructure\SBQR.Modules.KeyCustody.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\KeyCustody\SBQR.Modules.KeyCustody.Api\SBQR.Modules.KeyCustody.Api.csproj" />
+
+    <!-- QrGeneration -->
+    <ProjectReference Include="..\..\src\Modules\QrGeneration\SBQR.Modules.QrGeneration.Contracts\SBQR.Modules.QrGeneration.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\QrGeneration\SBQR.Modules.QrGeneration.Domain\SBQR.Modules.QrGeneration.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\QrGeneration\SBQR.Modules.QrGeneration.Application\SBQR.Modules.QrGeneration.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\QrGeneration\SBQR.Modules.QrGeneration.Infrastructure\SBQR.Modules.QrGeneration.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\QrGeneration\SBQR.Modules.QrGeneration.Api\SBQR.Modules.QrGeneration.Api.csproj" />
+
+    <!-- Verification -->
+    <ProjectReference Include="..\..\src\Modules\Verification\SBQR.Modules.Verification.Contracts\SBQR.Modules.Verification.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Verification\SBQR.Modules.Verification.Domain\SBQR.Modules.Verification.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Verification\SBQR.Modules.Verification.Application\SBQR.Modules.Verification.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Verification\SBQR.Modules.Verification.Infrastructure\SBQR.Modules.Verification.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Verification\SBQR.Modules.Verification.Api\SBQR.Modules.Verification.Api.csproj" />
+
+    <!-- Audit -->
+    <ProjectReference Include="..\..\src\Modules\Audit\SBQR.Modules.Audit.Contracts\SBQR.Modules.Audit.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Audit\SBQR.Modules.Audit.Domain\SBQR.Modules.Audit.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Audit\SBQR.Modules.Audit.Application\SBQR.Modules.Audit.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Audit\SBQR.Modules.Audit.Infrastructure\SBQR.Modules.Audit.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Audit\SBQR.Modules.Audit.Api\SBQR.Modules.Audit.Api.csproj" />
+
+    <!-- IdentityAccess -->
+    <ProjectReference Include="..\..\src\Modules\IdentityAccess\SBQR.Modules.IdentityAccess.Contracts\SBQR.Modules.IdentityAccess.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\IdentityAccess\SBQR.Modules.IdentityAccess.Domain\SBQR.Modules.IdentityAccess.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\IdentityAccess\SBQR.Modules.IdentityAccess.Application\SBQR.Modules.IdentityAccess.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\IdentityAccess\SBQR.Modules.IdentityAccess.Infrastructure\SBQR.Modules.IdentityAccess.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\IdentityAccess\SBQR.Modules.IdentityAccess.Api\SBQR.Modules.IdentityAccess.Api.csproj" />
+
+    <!-- Tenancy -->
+    <ProjectReference Include="..\..\src\Modules\Tenancy\SBQR.Modules.Tenancy.Domain\SBQR.Modules.Tenancy.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenancy\SBQR.Modules.Tenancy.Application\SBQR.Modules.Tenancy.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenancy\SBQR.Modules.Tenancy.Infrastructure\SBQR.Modules.Tenancy.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenancy\SBQR.Modules.Tenancy.Api\SBQR.Modules.Tenancy.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="NetArchTest.Rules" />
+  </ItemGroup>
+
+</Project>

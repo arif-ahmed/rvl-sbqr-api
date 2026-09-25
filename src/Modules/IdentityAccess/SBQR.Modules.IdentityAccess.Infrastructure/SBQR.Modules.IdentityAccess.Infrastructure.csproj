@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.IdentityAccess.Infrastructure — persistence and token-minting
+    adapters for the Identity & Access bounded context. Owns
+    IdentityDbContext (public.tenant_configurations), the Argon2id secret hasher,
+    and the HS256 JwtAccessTokenIssuer. See ../README.md.
+
+    Microsoft.IdentityModel.JsonWebTokens — minting the HS256 OAuth2
+    client-credentials access tokens issued by POST /oauth/token. Validation
+    happens in this same module's Api layer via
+    Microsoft.AspNetCore.Authentication.JwtBearer with the same symmetric
+    Jwt:SigningKey.
+
+    Isopoh.Cryptography.Argon2 — managed Argon2id implementation that emits
+    the PHC-format hash string mandated by docs/design/database-design.md
+    §1.3 for api_credentials.client_secret_hash.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.IdentityAccess.Infrastructure</RootNamespace>
+    <AssemblyName>SBQR.Modules.IdentityAccess.Infrastructure</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.IdentityAccess.Domain\SBQR.Modules.IdentityAccess.Domain.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.IdentityAccess.Application\SBQR.Modules.IdentityAccess.Application.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
+    <PackageReference Include="Isopoh.Cryptography.Argon2" />
+  </ItemGroup>
+
+</Project>

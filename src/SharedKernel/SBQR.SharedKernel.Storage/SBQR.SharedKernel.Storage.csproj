@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.SharedKernel.Storage — reusable IObjectStorage backends.
+
+    Kept OUT of SBQR.SharedKernel proper: that project's charter is "zero
+    infrastructure, zero IO" (pure DDD primitives + DI/config abstractions).
+    This project is the concrete AWS S3 adapter, so any module that needs
+    object storage (KeyCustody today, others later) references this project
+    instead of rolling its own AWSSDK.S3 wiring.
+
+    Local dev and production both go through the same S3ObjectStorage —
+    only Storage:* config (ServiceUrl, credentials, region, bucket,
+    VaultFolder) differs between a real AWS bucket and a LocalStack-style
+    emulator. See docs/dev-s3-guide.md.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.SharedKernel.Storage</RootNamespace>
+    <AssemblyName>SBQR.SharedKernel.Storage</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+  </ItemGroup>
+
+</Project>

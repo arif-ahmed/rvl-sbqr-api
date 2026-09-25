@@ -1,0 +1,161 @@
+# =============================================================================
+# docker-compose.yml — LOCAL DEVELOPMENT ONLY.
+#
+# Spins up the SBQR.Api host, a PostgreSQL instance with BOTH project databases
+# (sbqr_app + sbqr_key_vault) created on first boot, and Adminer for ad-hoc
+# inspection. Mirrors the
+# production topology closely enough that connection strings and env-var keys
+# can be exercised locally.
+#
+# Object storage (Storage:*) points at a real AWS S3 bucket, not an
+# emulator — see docs/dev-s3-guide.md. Real credentials live in the
+# gitignored docker/.env, never in this tracked file.
+#
+# NEVER use this file in staging or production. See docs/docker/DEPLOYMENT.md.
+#
+# The SBQR.Api image does NOT run migrations on startup. Apply the canonical
+# schema with the external migration tool (see docs/docker/DEPLOYMENT.md)
+# against sbqr.postgres before the API will start serving requests
+# successfully — the API will boot and serve /health/* even without the
+# schema, but any endpoint that touches the DB will fail.
+#
+# Quick reference:
+#   docker compose -f docker/docker-compose.yml up --build
+#   docker compose -f docker/docker-compose.yml down            # keep pgdata
+#   docker compose -f docker/docker-compose.yml down -v         # wipe pgdata
+#   docker compose -f docker/docker-compose.yml ps
+#   docker compose -f docker/docker-compose.yml logs -f sbqr.api
+#   docker compose -f docker/docker-compose.yml exec sbqr.postgres psql -U postgres -l
+#
+# Override anything via the .env file (copied from docker/.env.example).
+# =============================================================================
+
+name: sbqr
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — one container, two logical databases created by the init
+  # script on first start. Production keeps these on TWO separate Flexible
+  # Server instances for blast-radius isolation (see DEPLOYMENT.md §3).
+  # ---------------------------------------------------------------------------
+  sbqr.postgres:
+    image: postgres:16-alpine
+    container_name: sbqr.postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+    ports:
+      # Direct host access for host-side tooling (psql, PgAdmin, etc).
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER:-postgres}" -d "$${POSTGRES_DB:-postgres}"
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - sbqr-net
+
+  # ---------------------------------------------------------------------------
+  # SBQR.Api — the host project. Built from docker/Dockerfile.api.
+  # ---------------------------------------------------------------------------
+  sbqr.api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    container_name: sbqr.api
+    restart: unless-stopped
+    depends_on:
+      sbqr.postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS:-http://+:8080}
+      # Override the Kestrel binding from appsettings.json so it binds 0.0.0.0
+      # inside the container (appsettings binds 127.0.0.1 only).
+      Kestrel__Endpoints__Http__Url: ${Kestrel__Endpoints__Http__Url:-http://+:8080}
+      # Two connection strings — one per logical database. These names are
+      # the canonical env-var keys used in staging + prod too.
+      ConnectionStrings__sbqr_app: ${ConnectionStrings__sbqr_app:-Host=sbqr.postgres;Port=5432;Database=sbqr_app;Username=postgres;Password=postgres;Include Error Detail=true}
+      ConnectionStrings__sbqr_key_vault: ${ConnectionStrings__sbqr_key_vault:-Host=sbqr.postgres;Port=5432;Database=sbqr_key_vault;Username=postgres;Password=postgres;Include Error Detail=true}
+      # Dev-only signing provider — Program.cs refuses this in Production.
+      KeyCustody__ActiveProvider: ${KeyCustody__ActiveProvider:-PlainFile}
+      # Trust-store endpoint. REQUIRED (the host refuses to boot without it) —
+      # point it at the trust store you test against via docker/.env.
+      TrustStore__BaseUrl: ${TrustStore__BaseUrl:-}
+      TrustStore__SyncIntervalHours: ${TrustStore__SyncIntervalHours:-24}
+      # Dev-only cadence: sync the trust directory once at boot and every
+      # minute. Minutes takes precedence over the hours key above when set.
+      TrustStore__SyncOnStartup: ${TrustStore__SyncOnStartup:-true}
+      TrustStore__SyncIntervalMinutes: ${TrustStore__SyncIntervalMinutes:-1}
+      # --- S3 object storage (real AWS bucket) ---------------------------------
+      # Consumed by SBQR.SharedKernel.Storage.S3.S3ObjectStorage (see
+      # docs/dev-s3-guide.md §4). Real credentials/bucket come from
+      # docker/.env (gitignored) — this tracked file only carries the shape
+      # and non-secret defaults. Storage:VaultFolder namespaces every key
+      # under this bucket so multiple developers/modules never collide.
+      Storage__Provider: S3
+      Storage__ServiceUrl: ${Storage__ServiceUrl:-}
+      Storage__AccessKeyId: ${Storage__AccessKeyId:-}
+      Storage__SecretAccessKey: ${Storage__SecretAccessKey:-}
+      Storage__Region: ${Storage__Region:-us-east-1}
+      Storage__BucketName: ${Storage__BucketName:-}
+      Storage__VaultFolder: ${Storage__VaultFolder:-keycustody}
+      Storage__ForcePathStyle: ${Storage__ForcePathStyle:-false}
+      # --- OAuth2 client-credentials (POST /v1/oauth/token) --------------------
+      # Dev-only HS256 key; must be 32+ chars. Same key the bearer pipeline
+      # validates with. LOCAL-ONLY value — production reads it from Key Vault.
+      Jwt__Issuer: ${Jwt__Issuer:-sbqr}
+      Jwt__Audience: ${Jwt__Audience:-sbqr-api}
+      Jwt__SigningKey: ${Jwt__SigningKey:-dev-only-signing-key-change-me-0123456789abcdef}
+      Jwt__AccessTokenTtlMinutes: ${Jwt__AccessTokenTtlMinutes:-10}
+      # Platform bootstrap client ("client zero"). The code accepts ONLY the
+      # Argon2id PHC hash (Auth:Bootstrap:ClientSecretHash — plaintext client
+      # secret support was removed from PlatformBootstrapOptions). Generate a
+      # dev pair with: dotnet run --project src/Host/SBQR.Api --
+      # --generate-bootstrap-secret ; put the PHC in docker/.env.
+      Auth__Bootstrap__ClientId: ${Auth__Bootstrap__ClientId:-platform-bootstrap}
+      Auth__Bootstrap__ClientSecretHash: ${Auth__Bootstrap__ClientSecretHash:-}
+    ports:
+      - "${SBQR_API_HOST_PORT:-8080}:8080"
+    networks:
+      - sbqr-net
+
+  # ---------------------------------------------------------------------------
+  # Adminer — web UI for inspecting either database.
+  #   http://localhost:8081/?pgsql=sbqr.postgres&username=postgres&db=sbqr_app
+  # ---------------------------------------------------------------------------
+  adminer:
+    image: adminer:latest
+    container_name: sbqr.adminer
+    restart: unless-stopped
+    depends_on:
+      sbqr.postgres:
+        condition: service_healthy
+    environment:
+      ADMINER_DEFAULT_SERVER: sbqr.postgres
+      ADMINER_DESIGN: pepa-linha-dark
+    ports:
+      - "${ADMINER_HOST_PORT:-8081}:8080"
+    networks:
+      - sbqr-net
+
+# -----------------------------------------------------------------------------
+# Named volumes + network
+# -----------------------------------------------------------------------------
+volumes:
+  pgdata:
+    name: sbqr.pgdata
+
+networks:
+  sbqr-net:
+    name: sbqr-net
+    driver: bridge

@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.Audit.Infrastructure — EF Core persistence (audit_logs) +
+    the AuditLogger IAuditLogger implementation. The logger stamps
+    created_by / created_at itself from the AuditEntry; no audit-column
+    interceptor is attached.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.Audit.Infrastructure</RootNamespace>
+    <AssemblyName>SBQR.Modules.Audit.Infrastructure</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.Audit.Domain\SBQR.Modules.Audit.Domain.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.Audit.Application\SBQR.Modules.Audit.Application.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      IHttpContextAccessor is needed so AuditLogger can read the per-request
+      correlation id stashed by SBQR.Api.Infrastructure.CorrelationIdMiddleware
+      (every audit row for one HTTP request shares the same correlation_id).
+      The middleware itself is added in the host; this is just the contract.
+      Microsoft.Extensions.Logging.Abstractions and Microsoft.Extensions.Options
+      are pulled in transitively by Microsoft.AspNetCore.App — they were
+      removed from <PackageReference> to satisfy NU1510 (warnings-as-errors
+      on duplicate automatic framework-provided packages).
+    -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+</Project>

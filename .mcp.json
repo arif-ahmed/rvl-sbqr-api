@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "sbqr-postgres": {
+      "command": "dotnet",
+      "args": ["run", "-c", "Release", "--project", "tools/postgres-mcp", "--no-build"],
+      "description": "Local-only PostgreSQL inspector for sbqr_app + sbqr_key_vault (dev only, read-only by default). Build first: dotnet build tools/postgres-mcp -c Release."
+    }
+  }
+}

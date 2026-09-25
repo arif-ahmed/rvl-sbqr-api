@@ -1,0 +1,12 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+.dockerignore
+Dockerfile
+README.md
+# Local-only secrets — never baked into a published image. Render gets
+# the connection string via the env var in render.yaml; local runs get
+# it from the unignored-on-disk appsettings.Development.json.
+appsettings.Development.json

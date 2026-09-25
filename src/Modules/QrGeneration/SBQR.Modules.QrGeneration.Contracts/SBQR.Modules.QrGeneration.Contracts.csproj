@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.QrGeneration.Contracts — the published language of the QrGeneration
+    bounded context. This is the ONLY project other modules may reference
+    (tactical-design.md §4/§5).
+
+    Currently empty: QrGeneration is invoked only by the API host through MediatR
+    (which lives in SBQR.SharedKernel), and by no other module. Reserved for
+    cross-module seams that land in later issuance stories.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.QrGeneration.Contracts</RootNamespace>
+    <AssemblyName>SBQR.Modules.QrGeneration.Contracts</AssemblyName>
+  </PropertyGroup>
+
+</Project>

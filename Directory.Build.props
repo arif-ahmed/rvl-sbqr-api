@@ -1,0 +1,114 @@
+<Project>
+
+  <!--
+    SBQR.Service — common MSBuild properties.
+
+    Every project in this repo inherits these unless it explicitly overrides.
+    Keep this file small: only cross-cutting properties. Module-specific
+    settings belong in the module's own csproj.
+  -->
+
+  <PropertyGroup>
+
+    <!-- Target framework: pinned to .NET 10 (current LTS through Nov 2028). -->
+    <TargetFramework>net10.0</TargetFramework>
+
+    <!-- Language version: let the SDK pick the latest C# that the compiler supports (C# 14 for net10.0). -->
+    <LangVersion>latest</LangVersion>
+
+    <!-- Nullable reference types enabled across the solution. -->
+    <Nullable>enable</Nullable>
+
+    <!-- Implicit global usings for all common namespaces. -->
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Treat every compiler + analyzer warning as an error. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- Latest recommended analyzer set for .NET 10. -->
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <!--
+      Code style is intentionally NOT enforced at build time. With
+      TreatWarningsAsErrors=true (above), EnforceCodeStyleInBuild=true
+      would promote style rules (naming, var preference, qualification,
+      brace placement) from editorconfig into compiler diagnostics and
+      then into red build errors. That made Visual Studio's Error List
+      and `dotnet build` disagree on whether the solution built.
+      Keeping this false lets style rules surface as IDE suggestions
+      (light dots) without ever gating the build, so VS and MSBuild
+      always agree.
+    -->
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+
+    <!--
+      Allowed-to-suppress warnings. We deliberately silence a small handful
+      that produce noise without value for a modular monolith:
+
+        CA1716 — reserved language keywords as identifiers (rare; intent obvious in context)
+        CA2007 — ConfigureAwait(false) is not needed in ASP.NET Core
+        CA1062 — explicit null-check on every parameter adds boilerplate for no real gain
+        CA1711 — IDs ending in "Handler" / "Collection" / "EventHandler" are deliberate
+                 DDD conventions (IDomainEventHandler, INotificationHandler, etc).
+                 The rules false-positive on these by-design names.
+        CA1000 — Result<T> uses static Ok / Failure factories by deliberate convention
+                 for discriminated-union return types. The rule's "do not declare
+                 static members on generic types" advice does not apply here.
+        CA1707 — xUnit tests use underscores in method names by convention
+                 (Subject_should_behave_when_condition). The rule conflicts with
+                 the project's preferred test naming style.
+
+      NU1903 — known-vulnerability advisory on transitive packages. AutoMapper 15.x
+               and Microsoft.OpenApi 2.x both currently trigger this; tracked as a
+               follow-up to either bump past the affected range or replace with an
+               alternative mapper. The packages are not used yet in the scaffolding
+               pass so the risk is contained.
+      NU1902 — open-ended dependency version range (used by some packages we depend on).
+      NU1904 — known-vulnerability advisory on the System.Drawing.Common 5.0.0
+               transitive pulled in by Testcontainers.PostgreSql (image-compare
+               wait strategies). We pin a patched 5.0.3 in Directory.Packages.props
+               but the audit advisory still fires at restore time. The dep is
+               only resolved by the test project and the actual code path used
+               (Testcontainers.WaitForSqlServer-style polling) does not invoke
+               System.Drawing at all, so the risk is contained.
+      IDE0005 — unnecessary using directives; we keep the IDE suggestion out of
+                warnings-as-errors while still enabling the style analyzers elsewhere.
+    -->
+    <NoWarn>$(NoWarn);CA1716;CA2007;CA1062;CA1711;CA1000;CA1707;NU1903;NU1902;NU1904;IDE0005</NoWarn>
+
+    <!-- Metadata -->
+    <Version>0.1.0</Version>
+    <Authors>SBQR</Authors>
+    <Company>SBQR</Company>
+    <Product>SBQR.Service</Product>
+    <Copyright>Copyright (c) SBQR Contributors</Copyright>
+
+    <!-- This solution does not produce NuGet packages. -->
+    <IsPackable>false</IsPackable>
+
+    <!-- Documentation file: opt in per-project if desired. -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <!-- Central package management + lock files for reproducible CI. -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!--
+      Lock files are enabled per-project (see individual csproj's
+      RestorePackagesWithLockFile) so that the host (which takes a long
+      time to resolve) does not block the test projects. Default OFF
+      here; each csproj opts in.
+    -->
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+
+    <!-- Deterministic builds. -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+
+    <!--
+      Build features that are off by default. They make intent explicit when
+      an individual project wants to opt in.
+    -->
+    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+
+  </PropertyGroup>
+
+</Project>

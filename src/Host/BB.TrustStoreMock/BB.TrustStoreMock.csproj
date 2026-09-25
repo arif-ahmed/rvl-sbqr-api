@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    BB.TrustStoreMock — standalone simulation of the Bangladesh Bank trust
+    store described in docs/bb-banglaqr-p2p-specification.md Annex B. BB
+    has not published a real contract; this is OUR best guess, derived from
+    the spec's own language ("retrieve the public key file ... using
+    Institution_ID"). InstitutionTrust's HttpTrustStoreClient talks to
+    whichever base URL TrustStore:BaseUrl points at — this project today,
+    the real BB endpoint later. Deliberately NOT referenced by SBQR.Api or
+    wired into IModule discovery: it simulates an external system, not a
+    module of this platform.
+
+    Persists uploaded public keys in its OWN disposable PostgreSQL database
+    (bb_trust_store_mock — see Persistence/TrustStoreDbContext). The
+    database is dev/test-only and is dropped together with this project
+    when the real BB trust store lands.
+  -->
+
+  <PropertyGroup>
+    <!-- net10.0 matches the Dockerfile (mcr.microsoft.com/dotnet/sdk:10.0 +
+         mcr.microsoft.com/dotnet/aspnet:10.0). The original csproj relied on
+         a Directory.Build.props to set TargetFramework — that file does
+         not exist in this standalone repo, so we declare it explicitly. -->
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>BB.TrustStoreMock</RootNamespace>
+    <AssemblyName>BB.TrustStoreMock</AssemblyName>
+    <UserSecretsId>bb-trust-store-mock-secrets</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Versions are governed centrally by Directory.Packages.props (CPM) —
+         never put <Version> on a PackageReference in this repo. -->
+    <PackageReference Include="BouncyCastle.Cryptography" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Scalar.AspNetCore" />
+  </ItemGroup>
+
+</Project>

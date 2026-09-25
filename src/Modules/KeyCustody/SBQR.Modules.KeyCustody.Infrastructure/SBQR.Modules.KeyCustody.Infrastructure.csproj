@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.KeyCustody.Infrastructure — EF Core persistence
+    (read-only context over crypto_keys) + the cryptographic boundary.
+
+    The cryptographic boundary lives inside Infrastructure/Custody/:
+      EncryptedFileSigningKeyStore  — Phase-1 software vault (AES-256-GCM)
+      PemVaultSigningProvider        — Phase-1 default signing provider
+      Ed25519SignatureVerifier       — public-key-only verification
+      PlainFileSigningProvider       — dev-only stub (host guards in Prod)
+      HsmSigningProvider             — Phase-2 PKCS#11 target
+
+    The architecture test `Signing_types_must_only_live_in_KeyCustody_Infrastructure_Custody`
+    enforces the boundary.
+
+    Infrastructure depends on Domain (and SharedKernel for the crypto
+    abstractions) only. Handlers live in Application and are wired into the
+    composition root by the Api layer; this project intentionally does NOT
+    reference Application to avoid a circular dependency (Application
+    references Infrastructure for the GetSigningKey query's DbContext).
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.KeyCustody.Infrastructure</RootNamespace>
+    <AssemblyName>SBQR.Modules.KeyCustody.Infrastructure</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.KeyCustody.Domain\SBQR.Modules.KeyCustody.Domain.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+
+  <!--
+    Cryptographic boundary. NSec is the primary signing implementation;
+    BouncyCastle is the cross-implementation reference used in tests
+    to prove parity between signing providers.
+  -->
+  <ItemGroup>
+    <PackageReference Include="NSec.Cryptography" />
+    <PackageReference Include="BouncyCastle.Cryptography" />
+  </ItemGroup>
+
+  <!--
+    S3 key vault provider — S3KeyVaultProvider (Infrastructure/Vault/) asks
+    the host-registered IObjectStorageFactory (SBQR.SharedKernel.Storage,
+    resolved via DI) for a folder-scoped IObjectStorage and hands it to
+    S3SigningKeyStore (Infrastructure/Custody/). Neither type here — nor
+    this project's dependency list — knows or needs to know the storage
+    backend is S3; only SBQR.Api's composition root and the concrete
+    SBQR.SharedKernel.Storage.S3.S3ObjectStorageFactory implementation do.
+    The actual signing-key material stays inside the cryptographic
+    boundary; only the AES-256-GCM-sealed blobs leave it.
+  -->
+
+</Project>

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.Tenancy.Domain — pure domain layer for the Tenancy & Access
+    bounded context. No EF Core, no ASP.NET Core, no persistence or HTTP
+    awareness. See ../README.md for the full per-layer breakdown.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.Tenancy.Domain</RootNamespace>
+    <AssemblyName>SBQR.Modules.Tenancy.Domain</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

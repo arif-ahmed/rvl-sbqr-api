@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.Tenancy.Infrastructure — EF Core persistence (tenants,
+    api_credentials) + the CurrentTenantMiddleware/Accessor security seam.
+    See ../README.md.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.Tenancy.Infrastructure</RootNamespace>
+    <AssemblyName>SBQR.Modules.Tenancy.Infrastructure</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.Tenancy.Domain\SBQR.Modules.Tenancy.Domain.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.Tenancy.Application\SBQR.Modules.Tenancy.Application.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <!--
+      Microsoft.IdentityModel.JsonWebTokens — minting the HS256 OAuth2
+      client-credentials access tokens issued by JwtAccessTokenIssuer
+      (POST /oauth/token). Validation happens on the IdentityAccess side
+      via Microsoft.AspNetCore.Authentication.JwtBearer with the same
+      symmetric Jwt:SigningKey.
+    -->
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
+    <!--
+      Isopoh.Cryptography.Argon2 — managed Argon2id implementation that emits
+      the PHC-format hash string ($argon2id$v=19$m=…$t=…$p=…$) mandated by
+      docs/design/database-design.md §1.3 for api_credentials.client_secret_hash.
+    -->
+    <PackageReference Include="Isopoh.Cryptography.Argon2" />
+  </ItemGroup>
+
+</Project>

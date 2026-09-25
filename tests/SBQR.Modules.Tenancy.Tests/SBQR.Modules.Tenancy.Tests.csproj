@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.Tenancy.Tests — placeholder for epic-3.
+
+    Real tests for TenancyDbContext, the Tenant/TenantConfiguration aggregates,
+    and CurrentTenantMiddleware land in later epic-3 stories (02+).
+
+    Note: since the tenant_configurations aggregate (formerly api_credentials)
+    relocated to IdentityAccess, the Tenancy-side command-handler tests now
+    substitute the ITenantConfigurationProvisioner Contracts seam (provided by
+    IdentityAccess.Contracts) instead of touching the configuration aggregate
+    directly. The provisioner seam is named after the configuration concept —
+    both the seam surface and the underlying aggregate are now aligned on
+    "Configuration".
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.Tenancy.Tests</RootNamespace>
+    <AssemblyName>SBQR.Modules.Tenancy.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Tenancy is split into one project per Clean Architecture layer; referenced
+         individually (rather than relying on transitivity through Api) so tests can
+         target each layer directly as later stories add Domain/Application coverage.
+         The ITenantConfigurationProvisioner seam (Tenancy's handlers depend on it
+         since the tenant_configurations aggregate moved to IdentityAccess) lives in
+         IdentityAccess.Contracts; referenced here so the seam can be substituted. -->
+    <ProjectReference Include="..\..\src\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenancy\SBQR.Modules.Tenancy.Domain\SBQR.Modules.Tenancy.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenancy\SBQR.Modules.Tenancy.Application\SBQR.Modules.Tenancy.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenancy\SBQR.Modules.Tenancy.Infrastructure\SBQR.Modules.Tenancy.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenancy\SBQR.Modules.Tenancy.Api\SBQR.Modules.Tenancy.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\IdentityAccess\SBQR.Modules.IdentityAccess.Contracts\SBQR.Modules.IdentityAccess.Contracts.csproj" />
+    <!-- The signing-key cascade seam: Suspend/Reactivate/TerminateTenantCommandHandler
+         dispatch {Suspend,Reinstate}TenantSigningKeysCommand via ISender. The
+         HasActiveSigningKeyQuery (FR-TENANT-001 activate-gate) lives in the same
+         Contracts assembly. -->
+    <ProjectReference Include="..\..\src\Modules\KeyCustody\SBQR.Modules.KeyCustody.Contracts\SBQR.Modules.KeyCustody.Contracts.csproj" />
+    <!-- InstitutionTrust.Contracts for the activate-gate's
+         GetInstitutionPublicKeyQuery (FR-TENANT-001). -->
+    <ProjectReference Include="..\..\src\Modules\InstitutionTrust\SBQR.Modules.InstitutionTrust.Contracts\SBQR.Modules.InstitutionTrust.Contracts.csproj" />
+    <ProjectReference Include="..\SBQR.Tests.Common\SBQR.Tests.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="NSubstitute" />
+  </ItemGroup>
+
+</Project>

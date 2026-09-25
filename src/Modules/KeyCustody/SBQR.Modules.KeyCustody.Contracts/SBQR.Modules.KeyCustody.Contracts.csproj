@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.KeyCustody.Contracts — the published language of the
+    KeyCustody bounded context. This is the ONLY project other modules
+    may reference (tactical-design.md §4/§5).
+
+    Cross-module consumers:
+      QrGeneration         — GetSigningKeyQuery (activation gate)
+      Verification     — GetSigningKeyQuery (own-custody key resolution)
+
+    Note: ISigningProvider / ISignatureVerifier / ISigningKeyStore live in
+    SBQR.SharedKernel.Cryptography (they are kernel abstractions implemented
+    here). The MediatR read-side contract (GetSigningKeyQuery + SigningKeyView)
+    is the only module-local contract exported on this seam.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.KeyCustody.Contracts</RootNamespace>
+    <AssemblyName>SBQR.Modules.KeyCustody.Contracts</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR.Contracts" />
+  </ItemGroup>
+
+</Project>

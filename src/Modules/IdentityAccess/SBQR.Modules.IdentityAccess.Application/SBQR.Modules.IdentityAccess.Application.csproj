@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.IdentityAccess.Application — orchestration layer for the
+    Identity & Access bounded context: the OAuth 2.1 client-credentials token
+    command family, the platform bootstrap options, and the tenant-credential
+    provisioner that other modules call through
+    SBQR.Modules.IdentityAccess.Contracts. No EF Core, no ASP.NET Core types.
+    Tenant admission state arrives via SBQR.Modules.Tenancy.Contracts
+    (Contracts-to-Contracts is the sanctioned cross-module surface).
+    See ../README.md.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.IdentityAccess.Application</RootNamespace>
+    <AssemblyName>SBQR.Modules.IdentityAccess.Application</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.IdentityAccess.Domain\SBQR.Modules.IdentityAccess.Domain.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.IdentityAccess.Contracts\SBQR.Modules.IdentityAccess.Contracts.csproj" />
+    <ProjectReference Include="..\..\Tenancy\SBQR.Modules.Tenancy.Contracts\SBQR.Modules.Tenancy.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="AutoMapper" />
+    <PackageReference Include="Isopoh.Cryptography.Argon2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+  </ItemGroup>
+
+</Project>

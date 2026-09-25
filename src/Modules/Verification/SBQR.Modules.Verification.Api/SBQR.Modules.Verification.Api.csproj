@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.Verification.Api — composition root + HTTP surface. Hosts
+    VerificationModule (IModule) and the POST /qr/validate controller.
+    Domain, Application, and Infrastructure flow in transitively via
+    ProjectReference.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.Verification.Api</RootNamespace>
+    <AssemblyName>SBQR.Modules.Verification.Api</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- [ApiVersion] attribute for URL-segment API versioning; the versioning
+         pipeline itself is owned by the host (SBQR.Api Program.cs §7c). -->
+    <PackageReference Include="Asp.Versioning.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SBQR.Modules.Verification.Application\SBQR.Modules.Verification.Application.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.Verification.Infrastructure\SBQR.Modules.Verification.Infrastructure.csproj" />
+    <ProjectReference Include="..\SBQR.Modules.Verification.Contracts\SBQR.Modules.Verification.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.InstitutionTrust.IntegrationTests — integration tests that exercise
+    the trust-directory upsert path and the BB trust-store sync pipeline
+    against a real PostgreSQL container. Mirrors
+    tests/SBQR.Tenancy.IntegrationTests's Testcontainers + Respawn pattern.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.InstitutionTrust.IntegrationTests</RootNamespace>
+    <AssemblyName>SBQR.InstitutionTrust.IntegrationTests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Host\SBQR.Api\SBQR.Api.csproj" />
+    <ProjectReference Include="..\..\src\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\Modules\InstitutionTrust\SBQR.Modules.InstitutionTrust.Domain\SBQR.Modules.InstitutionTrust.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\InstitutionTrust\SBQR.Modules.InstitutionTrust.Application\SBQR.Modules.InstitutionTrust.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\InstitutionTrust\SBQR.Modules.InstitutionTrust.Infrastructure\SBQR.Modules.InstitutionTrust.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\InstitutionTrust\SBQR.Modules.InstitutionTrust.Api\SBQR.Modules.InstitutionTrust.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\InstitutionTrust\SBQR.Modules.InstitutionTrust.Contracts\SBQR.Modules.InstitutionTrust.Contracts.csproj" />
+    <ProjectReference Include="..\SBQR.Tests.Common\SBQR.Tests.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Respawn" />
+    <PackageReference Include="Npgsql" />
+  </ItemGroup>
+
+</Project>

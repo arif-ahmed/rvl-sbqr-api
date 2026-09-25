@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SBQR.Modules.Audit.Domain — pure domain layer for the Audit bounded
+    context. The AuditLog projection lives here as a plain entity (audit
+    rows are write-once facts projected from SBQR.SharedKernel.Application.AuditEntry).
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>SBQR.Modules.Audit.Domain</RootNamespace>
+    <AssemblyName>SBQR.Modules.Audit.Domain</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\SharedKernel\SBQR.SharedKernel\SBQR.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

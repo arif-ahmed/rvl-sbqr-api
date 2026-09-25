@@ -1,0 +1,165 @@
+# =============================================================================
+# render.yaml — TEMPORARY Render Blueprint for SBQR.Api (hosted pre-UAT "dev").
+#
+# *** TEMPORARY — DELETE WHEN MIGRATING TO ACA/AKS ***
+# Render is a stopgap deployment target. The permanent path is Azure
+# Container Apps (staging) + AKS (production) per docs/docker/DEPLOYMENT.md.
+# When Render retires: delete this file. No application code depends on it.
+#
+# The databases are NOT hosted on Render. This blueprint creates ONLY the
+# web service; connection strings point at the external AWS RDS PostgreSQL
+# instance and are pasted as secrets at Blueprint apply time.
+#
+# Key-vault backend: S3 (decision 2026-09-19) — the shared dev AWS bucket,
+# NOT the Local encrypted-file vault. Consequences:
+#   - ASPNETCORE_ENVIRONMENT is "Staging", NOT "Production": Program.cs §10a
+#     guard (d) refuses Crypto:VaultProvider=S3 in Production. "Staging"
+#     still behaves prod-like (internal-admin docs gated, no /admin/_routes,
+#     no .env loading) while allowing the S3 vault. All secrets are real
+#     generated values anyway — we configure as if the Production guards
+#     still ran.
+#   - NO persistent disk: encrypted blobs live in the bucket, sealed by
+#     KeyCustody__VaultKek (AES-256), namespaced by Storage__VaultFolder.
+#
+# Deploy:
+#   1. Commit this file, push to GitHub.
+#   2. Render Dashboard -> New -> Blueprint -> select this repo.
+#   3. Render prompts for every sync:false value (see below) — paste each.
+#   4. First deploy boots and serves /health/* once the secrets are valid.
+#
+# Firewall note: the AWS RDS instance's VPC security group must allowlist
+# Render's static outbound IPs on :5432 (Render Dashboard -> sbqr-api ->
+# Settings -> "Outbound"), plus the workstation that runs migrations. The
+# RDS instance must be publicly accessible for Render (outside AWS) to
+# reach it.
+#
+# Image notes:
+#   - Same Dockerfile as local/ACA/AKS (docker/Dockerfile.api). Binds :8080;
+#     Render's Docker runtime auto-detects the port. No code changes needed.
+#   - The API image does NOT run migrations — apply db/migrations/*.sql
+#     out-of-band against the external database (runbook at bottom).
+# =============================================================================
+
+services:
+  - type: web
+    name: sbqr-api
+    runtime: docker
+    dockerfilePath: ./docker/Dockerfile.api
+    dockerContext: .
+    plan: starter
+    autoDeploy: true
+    healthCheckPath: /health/live
+    envVars:
+      # "Staging", NOT "Production" (S3 vault refused there — see header) and
+      # NOT "Development" (would un-gate internal-admin docs + map
+      # /admin/_routes). "Staging" = prod-like hosting + S3 vault allowed.
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Staging
+      # --- External database (AWS RDS PostgreSQL, NOT Render-managed).
+      # Paste Npgsql-format strings; always include Ssl Mode=Require for RDS.
+      #   Host=<endpoint>.<region>.rds.amazonaws.com;Port=5432;Database=sbqr_app;Username=<master-user>;Password=<pass>;Ssl Mode=Require
+      # NOTE: sbqr_key_vault is reserved for a future wrapped-private-key
+      # table (db/migrations/README.md "Out of scope") — no code reads it
+      # today. Set it anyway so the future migration lands without a
+      # re-apply of this blueprint.
+      - key: ConnectionStrings__sbqr_app
+        sync: false
+      - key: ConnectionStrings__sbqr_key_vault
+        sync: false
+      # --- Key vault: S3 backend + PemVault signing provider (mirrors local
+      # `dotnet run` dev, which also runs Crypto:VaultProvider=S3 +
+      # KeyCustody:ActiveProvider=PemVault).
+      - key: Crypto__VaultProvider
+        value: S3
+      - key: KeyCustody__ActiveProvider
+        value: PemVault
+      # --- S3 object storage (shared dev bucket). VaultFolder namespaces
+      # this environment's blobs inside the bucket so they never collide
+      # with local-dev keys in the same bucket (different folder AND
+      # different KEK — the two stores are fully independent).
+      - key: Storage__Region
+        sync: false
+      - key: Storage__BucketName
+        sync: false
+      - key: Storage__VaultFolder
+        value: keycustody/hosted-dev
+      - key: Storage__AccessKeyId
+        sync: false
+      - key: Storage__SecretAccessKey
+        sync: false
+      - key: Jwt__Issuer
+        value: sbqr
+      - key: Jwt__Audience
+        value: sbqr-api
+      # --- Secrets: prompted at Blueprint apply time (sync:false). Generate
+      # locally BEFORE applying (commands in runbook below), then paste.
+      #   Jwt signing key: 32+ chars, never the committed dev key.
+      #     openssl rand -base64 48 | tr -d '\n'
+      - key: Jwt__SigningKey
+        sync: false
+      #   Vault KEK: exactly 32 bytes, base64. AES-256 key that seals QR
+      #   signing keys before they are written to S3. Losing it = losing
+      #   every key sealed under it — store in the operator vault.
+      #     openssl rand -base64 32
+      - key: KeyCustody__VaultKek
+        sync: false
+      #   Bootstrap credential hash (Argon2id PHC — the plaintext secret goes
+      #   in your operator vault, the hash goes here):
+      #     dotnet run --project src/Host/SBQR.Api -- --generate-bootstrap-secret
+      - key: Auth__Bootstrap__ClientSecretHash
+        sync: false
+      # --- Optional (leave empty until BB publishes a real trust store).
+      # While empty, third-party-QR verification cannot sync keys.
+      - key: TrustStore__BaseUrl
+        value: ""
+      - key: TrustStore__SyncIntervalHours
+        value: "24"
+
+# =============================================================================
+# Runbook (do once, in this order)
+#
+# 1. Databases — from a workstation with psql, against the AWS RDS instance
+#    (connect to its `postgres` database with the RDS master user — it has
+#    CREATEDB). Create both databases if not present:
+#      CREATE DATABASE sbqr_app;
+#      CREATE DATABASE sbqr_key_vault;
+#    Then apply the idempotent migrations to sbqr_app:
+#      bash:
+#        for f in db/migrations/*.sql; do
+#          psql "Host=<host>;Port=5432;Database=sbqr_app;Username=<owner-role>" \
+#            -v ON_ERROR_STOP=1 -f "$f" || break
+#        done
+#      PowerShell:
+#        Get-ChildItem db\migrations\*.sql | Sort-Object Name | ForEach-Object {
+#          psql "Host=<host>;Port=5432;Database=sbqr_app;Username=<owner-role>" `
+#            -v ON_ERROR_STOP=1 -f $_.FullName
+#          if ($LASTEXITCODE -ne 0) { break }
+#        }
+#    (Scripts are idempotent; never apply with a superuser in production.)
+#
+# 2. Secrets — generate locally, paste into Render when prompted:
+#      openssl rand -base64 48 | tr -d '\n'     # Jwt__SigningKey
+#      openssl rand -base64 32                   # KeyCustody__VaultKek
+#      dotnet run --project src/Host/SBQR.Api -- --generate-bootstrap-secret
+#    Plus the S3 coordinates of the shared dev bucket:
+#      Storage__Region / Storage__BucketName / Storage__AccessKeyId /
+#      Storage__SecretAccessKey (VaultFolder is fixed: keycustody/hosted-dev).
+#
+# 3. Firewall — AWS console -> RDS -> instance -> VPC security group:
+#    add an inbound rule for port 5432 with one source per Render outbound
+#    IP (Render Dashboard -> sbqr-api -> Settings -> "Outbound"), plus the
+#    workstation IP that runs migrations.
+#
+# 4. Verify:
+#      curl https://<your-service>.onrender.com/health/live   # {"status":"live"}
+#      curl https://<your-service>.onrender.com/health/ready  # {"status":"ready"}
+#      curl -X POST https://<your-service>.onrender.com/v1/oauth/token \
+#        -d grant_type=client_credentials \
+#        -d client_id=platform-bootstrap -d client_secret=<bootstrap-secret>
+#
+# 5. Rollback: Render Dashboard -> Deploys -> Rollback to previous deploy.
+#    Migrations are additive-only, so a code rollback stays valid.
+#
+# RETIREMENT: when migrating to ACA/AKS, delete this file. Nothing else in
+# the repo references Render.
+# =============================================================================

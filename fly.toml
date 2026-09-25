@@ -1,0 +1,104 @@
+# =============================================================================
+# fly.toml — DEV deploy for SBQR.Api on Fly.io (hosted pre-UAT "dev").
+# DB is Neon (external), NOT Fly Postgres. See runbook at bottom.
+# Same image as local/Render/ACA/AKS: docker/Dockerfile.api, binds :8080.
+# The API image does NOT run migrations — apply db/migrations/*.sql
+# out-of-band with psql before first deploy (step 1 below).
+# Secrets are NEVER in this file — set via `fly secrets set` (step 2).
+# =============================================================================
+
+app = "sbqr-api-dev"
+primary_region = "sin"
+
+[build]
+  dockerfile = "docker/Dockerfile.api"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 500
+    soft_limit = 400
+
+  [[http_service.checks]]
+    grace_period = "15s"
+    interval = "30s"
+    timeout = "3s"
+    method = "GET"
+    path = "/health/live"
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+[env]
+  ASPNETCORE_ENVIRONMENT = "Staging"
+  ASPNETCORE_URLS = "http://+:8080"
+  Crypto__VaultProvider = "S3"
+  KeyCustody__ActiveProvider = "PemVault"
+  Jwt__Issuer = "sbqr"
+  Jwt__Audience = "sbqr-api"
+  Storage__VaultFolder = "keycustody/hosted-dev-fly"
+  TrustStore__SyncIntervalHours = "24"
+
+# =============================================================================
+# RUNBOOK (do once, in this order)
+#
+# 0. Prereqs: flyctl logged in, app created once:
+#      fly auth login
+#      fly apps create sbqr-api-dev   # or `fly launch --no-deploy` from repo root
+#
+# 1. Databases — against Neon (direct host for DDL, NOT the -pooler host).
+#    Direct host = pooler host minus "-pooler":
+#      ep-orange-rain-b3rdohqa.c-4.ap-southeast-1.aws.neon.tech
+#    Create sbqr_key_vault if missing, then apply migrations to sbqr_app:
+#      PowerShell:
+#        $env:PGPASSWORD="<neon-password>"
+#        psql -h ep-orange-rain-b3rdohqa.c-4.ap-southeast-1.aws.neon.tech `
+#          -U neondb_owner -d postgres -c "CREATE DATABASE sbqr_key_vault;"
+#        Get-ChildItem db\migrations\*.sql | Sort-Object Name | ForEach-Object {
+#          psql "host=ep-orange-rain-b3rdohqa.c-4.ap-southeast-1.aws.neon.tech dbname=sbqr_app user=neondb_owner sslmode=require" `
+#            -v ON_ERROR_STOP=1 -f $_.FullName
+#          if ($LASTEXITCODE -ne 0) { break }
+#        }
+#
+# 2. Secrets — generate locally, set via fly (never commit):
+#      openssl rand -base64 48 | tr -d '\n'     # Jwt__SigningKey
+#      openssl rand -base64 32                   # KeyCustody__VaultKek
+#      dotnet run --project src/Host/SBQR.Api -- --generate-bootstrap-secret
+#    Then:
+#      fly secrets set -a sbqr-api-dev `
+#        ASPNETCORE_ENVIRONMENT="Staging" `
+#        ConnectionStrings__sbqr_app="Host=ep-orange-rain-b3rdohqa-pooler.c-4.ap-southeast-1.aws.neon.tech;Port=5432;Database=sbqr_app;Username=neondb_owner;Password=<pwd>;Ssl Mode=Require;Channel Binding=Require" `
+#        ConnectionStrings__sbqr_key_vault="Host=ep-orange-rain-b3rdohqa-pooler.c-4.ap-southeast-1.aws.neon.tech;Port=5432;Database=sbqr_key_vault;Username=neondb_owner;Password=<pwd>;Ssl Mode=Require;Channel Binding=Require" `
+#        Jwt__SigningKey="<48b64>" `
+#        KeyCustody__VaultKek="<32b64>" `
+#        Auth__Bootstrap__ClientSecretHash="<argon2id-phc>" `
+#        Storage__Region="ap-southeast-1" `
+#        Storage__BucketName="<bucket>" `
+#        Storage__AccessKeyId="<key>" `
+#        Storage__SecretAccessKey="<secret>" `
+#        TrustStore__BaseUrl=""
+#    (Storage__VaultFolder + Jwt issuer/audience already in [env] above.)
+#
+# 3. Deploy + verify:
+#      fly deploy
+#      fly status -a sbqr-api-dev
+#      fly logs -a sbqr-api-dev
+#      curl https://sbqr-api-dev.fly.dev/health/live   # {"status":"live"}
+#      curl https://sbqr-api-dev.fly.dev/health/ready  # {"status":"ready"}
+#
+# 4. Logs:
+#      fly logs -a sbqr-api-dev              # live tail
+#      fly logs -a sbqr-api-dev --since 1h   # recent window
+#
+# 5. Rollback: fly releases -a sbqr-api-dev + fly deploy -i <prev-image>
+#    Migrations are additive-only, so a code rollback stays valid.
+# =============================================================================
